@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMF Materiality Workbench</title>
+  <!-- React & ReactDOM CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel CDN for in-browser JSX parsing -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+    body, html { margin: 0; padding: 0; height: 100%; }
+    
+    .wb {
+      --bg: #E3E5E0; --surface: #F8F9F6; --surface2: #EDEFE9;
+      --ink: #15191A; --ink2: #4B5150; --ink3: #7E8482;
+      --line: #C8CBC3; --line2: #A6ABA1;
+      --acc: #14453C; --acc-s: #DBE7E1; --bad: #8A4520;
+      display: flex; min-height: 100%; background: var(--bg); color: var(--ink);
+      font-family: 'IBM Plex Sans KR', system-ui, sans-serif; font-weight: 400;
+      font-size: 14px; line-height: 1.65; letter-spacing: -0.01em;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wb * { box-sizing: border-box; }
+    .wb button { font-family: inherit; font-size: inherit; color: inherit; cursor: pointer; }
+    .wb :focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+    .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0; }
+
+    .divider { border: 0; border-top: 1px dashed var(--line2); margin: 20px 0; }
+
+    .rail { width: 212px; flex: 0 0 212px; border-right: 1px solid var(--line); padding: 26px 18px; display: flex; flex-direction: column; gap: 26px; position: sticky; top: 0; height: 100vh; background: var(--surface2); }
+    .brand { display: flex; gap: 10px; align-items: flex-start; }
+    .brand-mark { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .14em; background: var(--ink); color: var(--surface); padding: 3px 6px; border-radius: 1px; }
+    .brand-name { font-size: 12.5px; line-height: 1.3; font-weight: 600; letter-spacing: -.02em; }
+    .steps { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+    .step { display: flex; align-items: center; gap: 10px; background: none; border: 0; text-align: left; padding: 9px 8px; border-radius: 2px; position: relative; transition: background .15s; }
+    .step:hover:not(:disabled) { background: #E3E6DF; }
+    .step.on { background: var(--ink); color: var(--surface); }
+    .step.off { opacity: .34; cursor: default; }
+    .step-n { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; opacity: .7; width: 16px; }
+    .step-t { display: flex; flex-direction: column; line-height: 1.25; }
+    .step-kr { font-size: 13px; font-weight: 500; }
+    .step-en { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; opacity: .55; letter-spacing: .06em; text-transform: uppercase; }
+    .step-dot { position: absolute; right: 8px; width: 4px; height: 4px; border-radius: 50%; background: var(--acc); }
+    .reset { background: none; border: 1px solid var(--line2); border-radius: 2px; padding: 8px; font-size: 12px; color: var(--ink2); }
+    .reset:hover { border-color: var(--ink); color: var(--ink); }
+
+    .main { flex: 1; height: 100vh; overflow-y: auto; padding: 34px 30px 90px; }
+    .col { max-width: 820px; margin: 0 auto; }
+
+    .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-bottom: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+    .chain-i { color: var(--ink3); }
+    .chain-i.past { color: var(--ink2); }
+    .chain-i.on { color: var(--surface); background: var(--acc); padding: 2px 7px; border-radius: 1px; }
+    .chain-arrow { color: var(--line2); }
+
+    .head { border-top: 2px solid var(--ink); padding-top: 14px; margin-bottom: 22px; }
+    .head-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .14em; color: var(--acc); margin-bottom: 8px; }
+    .head-h { font-size: 29px; font-weight: 600; letter-spacing: -.035em; line-height: 1.2; margin: 0 0 8px; }
+    .head-en { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 400; color: var(--ink3); letter-spacing: .04em; margin-left: 11px; vertical-align: middle; }
+    .head-d { margin: 0; color: var(--ink2); max-width: 62ch; }
+
+    .note { border-left: 2px solid var(--acc); background: var(--acc-s); padding: 10px 13px; margin-bottom: 18px; font-size: 13px; }
+    .note.warn { border-color: var(--bad); background: #F1E3D9; color: #5D2F14; }
+    .inline-retry { background: none; border: 0; text-decoration: underline; padding: 0 0 0 10px; font-size: 12.5px; color: inherit; }
+
+    .form { display: flex; flex-direction: column; gap: 20px; max-width: 620px; }
+    .f { display: flex; flex-direction: column; gap: 6px; }
+    .f-l { font-size: 12.5px; font-weight: 600; letter-spacing: -.01em; }
+    .f-l em { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; color: var(--acc); letter-spacing: .1em; margin-left: 6px; }
+    .f-h { font-size: 12px; color: var(--ink3); }
+    .f-i, .f-t { background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 10px 12px; font-family: inherit; font-size: 14px; color: var(--ink); width: 100%; resize: vertical; }
+    .f-i:focus, .f-t:focus { border-color: var(--acc); outline: none; }
+    .seg { display: flex; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; width: fit-content; background: var(--surface); }
+    .seg-b { border: 0; background: none; padding: 8px 18px; font-size: 13px; border-right: 1px solid var(--line); }
+    .seg-b:last-child { border-right: 0; }
+    .seg-b.on { background: var(--ink); color: var(--surface); }
+
+    /* Keyword Selection Styles */
+    .kw-cat { margin-bottom: 12px; }
+    .kw-cat-title { font-size: 12px; font-weight: 600; margin: 0 0 6px; color: var(--ink2); display: flex; align-items: center; gap: 6px; }
+    .kw-cat-title::before { content: ''; display: block; width: 4px; height: 12px; background: var(--line2); border-radius: 2px; }
+    .kw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .kw-chip { background: var(--surface2); border: 1px solid var(--line); border-radius: 4px; padding: 5px 12px; font-size: 13px; color: var(--ink2); transition: all 0.15s ease; user-select: none; }
+    .kw-chip:hover { border-color: var(--ink3); color: var(--ink); }
+    .kw-chip.on { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+    .kw-preview { padding: 12px; background: var(--surface2); border-radius: 4px; font-size: 13px; color: var(--acc); font-weight: 500; line-height: 1.5; margin-top: 10px; border-left: 3px solid var(--acc); }
+
+    .btn { background: var(--ink); color: var(--surface); border: 0; border-radius: 2px; padding: 11px 18px; font-size: 13px; font-weight: 500; letter-spacing: -.01em; transition: opacity .15s; }
+    .btn:hover:not(:disabled) { opacity: .86; }
+    .btn:disabled { background: var(--line); color: #8A908C; cursor: default; }
+    .btn.big { padding: 13px 22px; align-self: flex-start; }
+    .btn.small { padding: 8px 14px; font-size: 12.5px; white-space: nowrap; }
+    .btn.ghost { background: none; color: var(--ink2); border: 1px solid var(--line2); }
+    .btn.ghost:hover:not(:disabled) { color: var(--ink); border-color: var(--ink); }
+
+    .regen { display: flex; gap: 8px; margin-bottom: 22px; }
+    .regen-in { flex: 1; background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 9px 12px; font-family: inherit; font-size: 12.5px; min-width: 0; }
+    .regen-in:focus { border-color: var(--acc); outline: none; }
+
+    .loading { padding: 26px 0; }
+    .loading p { color: var(--ink3); font-size: 13px; margin: 10px 0 0; }
+    .loading p em { font-style: normal; font-size: 11px; }
+    .loading-bar { height: 2px; background: var(--line); overflow: hidden; }
+    .loading-bar span { display: block; height: 100%; width: 34%; background: var(--acc); animation: sweep 1.25s ease-in-out infinite; }
+    @keyframes sweep { 0% { transform: translateX(-100%) } 100% { transform: translateX(330%) } }
+    .empty { border: 1px dashed var(--line2); border-radius: 2px; padding: 34px; text-align: center; }
+    .empty p { color: var(--ink3); margin: 0 0 14px; }
+
+    .sec { margin: 30px 0; }
+    .sec-h { font-size: 13px; font-weight: 600; letter-spacing: .01em; margin: 0 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line); display: flex; align-items: baseline; gap: 9px; }
+    .sec-h.bad { color: var(--bad); }
+    .sec-n { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--ink3); font-weight: 400; letter-spacing: .06em; }
+    .count { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--acc); margin-left: auto; font-weight: 400; }
+    .secbar { font-size: 12.5px; color: var(--ink3); display: flex; gap: 8px; align-items: baseline; margin-bottom: 6px; }
+    .body { margin: 0; color: var(--ink2); max-width: 66ch; }
+    .body.dim { color: var(--ink3); }
+
+    .stack { display: flex; flex-direction: column; gap: 8px; }
+    .pick { display: flex; flex-direction: column; gap: 6px; text-align: left; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 14px 16px; transition: border-color .15s, box-shadow .15s; }
+    .pick:hover { border-color: var(--line2); }
+    .pick.on { border-color: var(--acc); box-shadow: inset 3px 0 0 var(--acc); background: #FBFCF9; }
+    .pick.weak { background: #F4F0EB; }
+    .pick.weak.on { box-shadow: inset 3px 0 0 var(--bad); border-color: var(--bad); }
+    .pick-tag { font-size: 13.5px; font-weight: 600; letter-spacing: -.015em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pick-txt { color: var(--ink2); }
+    .pick-sub { font-size: 12.5px; color: var(--ink3); border-top: 1px dotted var(--line); padding-top: 6px; }
+    .pick-sub em { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .1em; color: var(--acc); margin-right: 6px; text-transform: uppercase; }
+    .layer, .pol { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .09em; background: var(--acc); color: var(--surface); padding: 2px 6px; border-radius: 1px; text-transform: uppercase; }
+    .pol.bad { background: var(--bad); }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 9px 12px; max-width: 250px; display: flex; flex-direction: column; gap: 2px; }
+    .chip.on { border-color: var(--acc); background: var(--acc-s); }
+    .chip-n { font-size: 13px; font-weight: 600; }
+    .chip-d { font-size: 12px; color: var(--ink2); line-height: 1.45; }
+
+    .axis { margin-bottom: 20px; }
+    .axis-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.5px; font-weight: 500; }
+    .axis-v { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--acc); }
+    .axis-r { width: 100%; margin: 6px 0 4px; accent-color: var(--acc); height: 3px; }
+    .axis-n { margin: 0; font-size: 12px; color: var(--ink3); }
+
+    .risks { display: flex; flex-direction: column; gap: 9px; }
+    .risk { border-left: 2px solid var(--line2); padding-left: 12px; }
+    .risk-t { font-size: 13px; display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+    .risk-t span { color: var(--ink3); }
+    .risk p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink2); }
+    .bad { color: var(--bad); }
+
+    .props { display: grid; grid-template-columns: repeat(auto-fill, minmax(258px, 1fr)); gap: 10px; }
+    .prop { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 0 0 14px; overflow: hidden; display: flex; flex-direction: column; transition: border-color .15s; }
+    .prop:hover { border-color: var(--line2); }
+    .prop.on { border-color: var(--acc); box-shadow: 0 0 0 1px var(--acc); }
+    .prop-top { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px 0; }
+    .prop-i { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink3); }
+    .w { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .06em; border: 1px solid var(--line2); padding: 1px 5px; border-radius: 1px; color: var(--ink2); }
+    .w-매우높음 { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+    .w-높음 { background: var(--acc-s); border-color: var(--acc); color: var(--acc); }
+    .prop-n { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 500; margin: 8px 0 2px; padding: 0 14px; letter-spacing: -.01em; line-height: 1.3; }
+    .prop-meta { font-size: 11px; color: var(--ink3); padding: 0 14px 10px; border-bottom: 1px solid var(--line); }
+    .prop-dl { margin: 0; padding: 11px 14px 0; font-size: 12.5px; }
+    .prop-dl dt { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .09em; color: var(--ink3); text-transform: uppercase; margin-top: 8px; }
+    .prop-dl dt:first-child { margin-top: 0; }
+    .prop-dl dd { margin: 1px 0 0; color: var(--ink2); line-height: 1.5; }
+
+    .sw { height: 58px; border-bottom: 1px solid var(--line); background: #2A2E30; }
+    .sw-directional { background: linear-gradient(100deg, #171b1d 0%, #3a4144 30%, #eaf0f2 45%, #98a2a5 52%, #2f3537 64%, #121516 100%); }
+    .sw-gloss { background: linear-gradient(168deg, #0d1011 0%, #2a3033 38%, #f1f4f5 48%, #2a3033 58%, #0d1011 100%); }
+    .sw-haze { background: radial-gradient(130% 150% at 32% 18%, #eef1ef 0%, #bcc5c1 34%, #7d8783 68%, #4d5654 100%); }
+    .sw-transmittance { background: linear-gradient(92deg, rgba(174,208,202,.9), rgba(112,162,157,.5)), repeating-linear-gradient(135deg, #e2e8e5 0 11px, #ccd6d2 11px 22px); }
+    .sw-sparkle { background: radial-gradient(circle at 18% 32%, #fff 0 1px, transparent 2px), radial-gradient(circle at 44% 68%, #fff 0 1px, transparent 2px), radial-gradient(circle at 71% 24%, #fff 0 1px, transparent 2px), radial-gradient(circle at 88% 62%, #fff 0 1px, transparent 2px), linear-gradient(150deg, #3d4548, #191d1f); }
+    .sw-thermal { background: linear-gradient(92deg, #7ba7bd 0%, #a8c1cc 32%, #c6bdad 64%, #bf8a57 100%); }
+    .sw-hardness { background: conic-gradient(from 205deg at 50% 50%, #0e1112, #5a6366, #e4e9ea, #38403f, #0e1112); }
+    .sw-roughness { background: repeating-linear-gradient(44deg, #6b7270 0 2px, #868d8a 2px 4px), linear-gradient(#8e9592, #5b6260); }
+    .sw-elastic { background: radial-gradient(62% 125% at 50% 122%, #d2dad5 0%, #8e9a95 42%, #4c5653 82%); }
+    .sw-density { background: repeating-linear-gradient(90deg, #1e2428 0 6px, #3c4448 6px 8px, #575f63 8px 9px); }
+    .sw-contrast { background: linear-gradient(92deg, #0a0c0d 0 49%, #f3f6f5 51% 100%); }
+    .sw-texture { background: repeating-linear-gradient(114deg, #2d3335 0 3px, #4a5153 3px 6px, #69716f 6px 7px); }
+    .sw-default { background: linear-gradient(120deg, #2a3033, #7c8587, #394042); }
+
+    .tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; background: var(--surface); border: 1px solid var(--line); }
+    .tbl th { text-align: left; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--ink3); font-weight: 400; padding: 8px 11px; border-bottom: 1px solid var(--line); }
+    .tbl td { padding: 9px 11px; border-bottom: 1px solid var(--surface2); vertical-align: top; color: var(--ink2); }
+    .tbl tr:last-child td { border-bottom: 0; }
+
+    .flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; font-family: 'IBM Plex Mono', monospace; padding: 8px 0; border-top: 1px dotted var(--line); border-bottom: 1px dotted var(--line); }
+    .flow b { font-weight: 500; }
+    .flow i { color: var(--ink3); font-style: normal; }
+    .tr { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; margin-top: 4px; }
+    .tr>div>span { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .09em; color: var(--ink3); text-transform: uppercase; display: block; }
+    .tr>div>p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink2); line-height: 1.5; }
+    .bridge { background: var(--acc-s); border-left: 2px solid var(--acc); padding: 16px 18px; }
+    .bridge .sec-h { border-color: rgba(20, 69, 60, .28); }
+
+    .conds { display: flex; flex-wrap: wrap; gap: 5px; }
+    .cond { font-size: 11.5px; color: var(--ink2); border: 1px solid var(--line); background: var(--surface); padding: 3px 8px; border-radius: 1px; }
+
+    .sumgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 20px 0; }
+    .sumcard { background: var(--surface); border: 1px solid var(--line); padding: 14px 16px; border-radius: 2px; }
+    .sumlab { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: .11em; text-transform: uppercase; color: var(--ink3); display: block; margin-bottom: 8px; }
+    .big-kw { font-size: 19px; font-weight: 600; letter-spacing: -.03em; margin: 0 0 6px; line-height: 1.25; }
+    .ul { margin: 0; padding-left: 15px; font-size: 12.5px; color: var(--ink2); }
+    .ul li { margin-bottom: 3px; }
+    .moments { margin: 0; padding: 0; list-style: none; }
+    .moments li { border-left: 2px solid var(--acc); padding: 2px 0 2px 13px; margin-bottom: 11px; }
+    .moments li.weak { border-color: var(--bad); }
+    .moments li b { display: block; font-size: 13.5px; font-weight: 600; letter-spacing: -.015em; }
+    .moments li span { font-size: 12.5px; color: var(--ink2); }
+    .rules { margin: 0; padding-left: 17px; color: var(--ink2); }
+    .rules li { margin-bottom: 6px; }
+    .two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    .final { margin: 26px 0 0; padding: 20px 22px; background: var(--ink); color: var(--surface); font-size: 16px; line-height: 1.6; letter-spacing: -.02em; border-radius: 2px; }
+    .final b { color: #A9D8C6; font-weight: 600; }
+
+    .foot { display: flex; gap: 9px; margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--line); flex-wrap: wrap; }
+
+    @media (max-width: 820px) {
+      .wb { flex-direction: column; }
+      .rail { width: 100%; flex: none; height: auto; position: static; flex-direction: row; align-items: center; gap: 14px; padding: 12px 16px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand-name { display: none; }
+      .steps { flex-direction: row; gap: 4px; }
+      .step { padding: 6px 9px; white-space: nowrap; }
+      .step-en { display: none; }
+      .step-dot { display: none; }
+      .reset { white-space: nowrap; font-size: 11px; padding: 6px 9px; }
+      .main { height: auto; padding: 22px 16px 70px; }
+      .head-h { font-size: 24px; }
+      .two, .tr { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .wb * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- React Code with Babel -->
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    /* ────────────────────────────────────────────────────────────
+       CMF Materiality Workbench
+       감성 → 지각 → 물성 → 구현 → 경험
+       ──────────────────────────────────────────────────────────── */
+
+    // 모델명 고정 (절대 변경 금지)
+    const MODEL_NAME = "gemini-flash-latest";
+
+    const STAGES = [
+      { n: 0, key: "brief", label: "브리프", en: "Brief" },
+      { n: 1, key: "s1", label: "감성 해석", en: "Emotion" },
+      { n: 2, key: "s2", label: "지각 특성", en: "Perception" },
+      { n: 3, key: "s3", label: "물성 도출", en: "Property" },
+      { n: 4, key: "s4", label: "구현 방법", en: "Translation" },
+      { n: 5, key: "s5", label: "경험 순간", en: "Experience" },
+      { n: 6, key: "sum", label: "최종 요약", en: "Summary" },
+    ];
+
+    const SWATCHES = [
+      "directional", "gloss", "haze", "transmittance", "sparkle", "thermal",
+      "hardness", "roughness", "elastic", "density", "contrast", "texture",
+    ];
+
+    // 50개 감성 키워드 데이터 (5가지 카테고리)
+    const EMOTION_CATEGORIES = [
+      {
+        name: "자연/편안함 (Nature & Comfort)",
+        keywords: ["따뜻한", "부드러운", "편안한", "자연스러운", "포근한", "차분한", "유기적인", "숨쉬는", "안정적인", "여유로운"]
+      },
+      {
+        name: "첨단/신뢰 (Tech & Trust)",
+        keywords: ["차가운", "예리한", "정밀한", "단단한", "견고한", "날렵한", "미래지향적인", "혁신적인", "규칙적인", "신뢰할수있는"]
+      },
+      {
+        name: "고급/세련 (Luxury & Elegance)",
+        keywords: ["고급스러운", "우아한", "세련된", "은은한", "화려한", "깊이있는", "묵직한", "정제된", "매끄러운", "반짝이는"]
+      },
+      {
+        name: "역동/활력 (Dynamic & Energy)",
+        keywords: ["역동적인", "경쾌한", "활기찬", "강렬한", "스포티한", "유연한", "탄력있는", "리듬감있는", "생동감있는", "짜릿한"]
+      },
+      {
+        name: "개성/독특함 (Unique & Character)",
+        keywords: ["독특한", "낯선", "신비로운", "투박한", "빈티지한", "유쾌한", "대담한", "몽환적인", "불규칙한", "거친"]
+      }
+    ];
+
+    /* ── JSON 복구 파서 ─────────────────────────────────────────── */
+    function closeTruncated(t) {
+      const stack = [];
+      const marks = [];
+      let inStr = false, esc = false;
+
+      for (let i = 0; i < t.length; i++) {
+        const c = t[i];
+        if (inStr) {
+          if (esc) esc = false;
+          else if (c === "\\") esc = true;
+          else if (c === '"') { inStr = false; marks.push({ i, st: stack.slice() }); }
+          continue;
+        }
+        if (c === '"') { inStr = true; continue; }
+        if (c === "{" || c === "[") { stack.push(c); continue; }
+        if (c === "}" || c === "]") { stack.pop(); marks.push({ i, st: stack.slice() }); continue; }
+        if (c === ",") { marks.push({ i: i - 1, st: stack.slice() }); continue; }
+        if (/[0-9truefalsn]/.test(c) && !/[0-9a-z]/i.test(t[i + 1] || "")) marks.push({ i, st: stack.slice() });
+      }
+
+      for (let m = marks.length - 1; m >= 0; m--) {
+        const { i, st } = marks[m];
+        let cand = t.slice(0, i + 1);
+        for (let k = st.length - 1; k >= 0; k--) cand += st[k] === "{" ? "}" : "]";
+        try { return JSON.parse(cand); } catch (e) { /* 후퇴 */ }
+      }
+      throw new Error("PARSE");
+    }
+
+    function repairJSON(raw) {
+      let t = String(raw || "").replace(/```json/gi, "").replace(/```/g, "").trim();
+      const s = t.indexOf("{");
+      if (s > 0) t = t.slice(s);
+      if (s === -1) throw new Error("PARSE");
+      const e = t.lastIndexOf("}");
+      if (e > 0) { try { return JSON.parse(t.slice(0, e + 1)); } catch (x) {} }
+      try { return JSON.parse(t); } catch (x) {}
+      return closeTruncated(t);
+    }
+
+    /* ── API (Gemini 연동) ─────────────────────────────────────────────────── */
+    async function onceGemini(apiKey, systemPrompt, userPrompt) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: userPrompt }] }],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2
+          }
+        }),
+      });
+      if (!res.ok) throw new Error("NET");
+      const data = await res.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    }
+
+    async function askGemini(apiKey, systemPrompt, userPrompt) {
+      if (!apiKey) throw new Error("API_KEY_MISSING");
+      
+      let lastErr = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const fallbackPrompt = attempt === 0 
+            ? userPrompt 
+            : userPrompt + "\n\n반드시 JSON 하나만 출력한다. 설명·머리말·코드펜스 금지. 항목 수를 줄여서라도 JSON을 끝까지 닫는다.";
+          
+          const text = await onceGemini(apiKey, systemPrompt, fallbackPrompt);
+          return repairJSON(text);
+        } catch (e) { lastErr = e; }
+      }
+      throw new Error(lastErr && lastErr.message === "NET"
+        ? "모델 응답을 받지 못했습니다. 잠시 후 다시 시도해 주세요."
+        : "응답을 해석하지 못했습니다. 제안 다시 받기를 눌러 주세요.");
+    }
+
+    const RULES = `너는 CMF·Materiality Experience Designer다.
+원칙: 감성에서 바로 소재로 건너뛰지 않는다. 과학적 사실과 디자인 해석을 구분한다.
+존재하지 않는 소재·공정·수치를 만들지 않는다. 근거가 불확실하면 불확실하다고 쓴다.
+형용사 나열 대신 실제 공학·물리 용어를 쓴다. 과장하지 않는다.
+
+출력 규칙(엄수):
+- JSON 객체 하나만 출력한다. 코드펜스, 설명문, 머리말 금지.
+- 모든 텍스트는 한국어. 공학 용어는 영문 그대로 써도 된다.
+- 지정된 글자 수 제한을 넘기지 않는다. 짧고 구체적으로 쓴다.
+- 요청된 개수를 지키고 JSON을 반드시 끝까지 닫는다.`;
+
+    /* ── 유틸 ────────────────────────────────────────────────── */
+    const arr = (x) => (Array.isArray(x) ? x : []);
+    const pfx = (list, p) => arr(list).map((x, i) => ({ ...x, id: `${p}${x.id || i}` }));
+
+    function mergeChannels(a, b) {
+      const map = new Map();
+      [...arr(a), ...arr(b)].forEach((ch) => {
+        if (!ch || !ch.sense) return;
+        if (!map.has(ch.sense)) map.set(ch.sense, { sense: ch.sense, items: [] });
+        map.get(ch.sense).items.push(...arr(ch.items));
+      });
+      return [...map.values()].filter((c) => c.items.length);
+    }
+
+    /* ── 저장 ────────────────────────────────────────────────── */
+    const KEY = "cmf:workbench:current";
+    const API_KEY_STORAGE = "cmf:workbench:apikey";
+
+    async function saveState(payload) {
+      try {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(KEY, JSON.stringify(payload));
+        }
+      } catch (e) {}
+    }
+
+    async function loadState() {
+      try {
+        if (typeof window !== "undefined") {
+          const r = localStorage.getItem(KEY);
+          return r ? JSON.parse(r) : null;
+        }
+      } catch (e) { return null; }
+      return null;
+    }
+
+    /* ── 메인 앱 컴포넌트 ────────────────────────────────────────────── */
+    function CMFWorkbench() {
+      const [apiKey, setApiKey] = useState("");
+      const [stage, setStage] = useState(0);
+      const [brief, setBrief] = useState({ keywords: "", selectedKeywords: [], target: "제품+UX", product: "", notes: "" });
+      const [data, setData] = useState({});
+      const [sel, setSel] = useState({ def: null, comps: [], axes: {}, perc: [], props: [], prod: [], ux: [], moments: [] });
+      const [tweak, setTweak] = useState({});
+      const [busy, setBusy] = useState(null);
+      const [prog, setProg] = useState("");
+      const [err, setErr] = useState(null);
+      const [staleFrom, setStaleFrom] = useState(null);
+      const [copied, setCopied] = useState(false);
+      const [restored, setRestored] = useState(false);
+      const mainRef = useRef(null);
+      const firstLoad = useRef(true);
+
+      useEffect(() => {
+        (async () => {
+          const s = await loadState();
+          const savedKey = localStorage.getItem(API_KEY_STORAGE) || "";
+          setApiKey(savedKey);
+
+          // brief.selectedKeywords 필드 하위 호환성 유지
+          if (s && s.brief && (s.brief.keywords || (s.brief.selectedKeywords && s.brief.selectedKeywords.length > 0))) {
+            setBrief({ ...s.brief, selectedKeywords: s.brief.selectedKeywords || [] });
+            setData(s.data || {});
+            setSel(s.sel || { def: null, comps: [], axes: {}, perc: [], props: [], prod: [], ux: [], moments: [] });
+            setStage(s.stage || 0); setRestored(true);
+          }
+          firstLoad.current = false;
+        })();
+      }, []);
+
+      useEffect(() => {
+        if (firstLoad.current) return;
+        const t = setTimeout(() => saveState({ brief, data, sel, stage }), 700);
+        return () => clearTimeout(t);
+      }, [brief, data, sel, stage]);
+
+      useEffect(() => {
+        if (apiKey) localStorage.setItem(API_KEY_STORAGE, apiKey);
+      }, [apiKey]);
+
+      useEffect(() => { if (mainRef.current) mainRef.current.scrollTo({ top: 0, behavior: "smooth" }); }, [stage]);
+
+      const markStale = (fromStage) => {
+        const later = STAGES.slice(fromStage + 1).some((s) => data[s.key]);
+        if (later) setStaleFrom((p) => (p === null ? fromStage + 1 : Math.min(p, fromStage + 1)));
+      };
+
+      const toggle = (field, id, stageNo) => {
+        setSel((p) => {
+          const a = p[field] || [];
+          return { ...p, [field]: a.includes(id) ? a.filter((x) => x !== id) : [...a, id] };
+        });
+        markStale(stageNo);
+      };
+
+      /* ── 문맥 도출 ── */
+      const getMergedKeywords = () => {
+        const kws = [...(brief.selectedKeywords || [])];
+        const manual = brief.keywords.split(',').map(k => k.trim()).filter(Boolean);
+        manual.forEach(m => { if (!kws.includes(m)) kws.push(m); });
+        return kws.join(", ");
+      };
+
+      const ctxBrief = () =>
+        `[프로젝트]\n감성 키워드: ${getMergedKeywords()}\n적용 대상: ${brief.target}\n제품/서비스: ${brief.product || "미지정"}\n추가 조건: ${brief.notes || "없음"}`;
+
+      const ctxS1 = () => {
+        const d = data.s1; if (!d) return "";
+        const def = arr(d.definitions).find((x) => x.id === sel.def);
+        const comps = arr(d.components).filter((c) => sel.comps.includes(c.name)).map((c) => c.name).join(", ");
+        const axes = arr(d.axes).map((a, i) => `${a.left}↔${a.right} ${sel.axes[i] ?? a.value}/100`).join(" / ");
+        return `\n[확정된 감성 해석]\n정의: ${def ? def.text : "-"}\n구성 요소: ${comps || "-"}\n감성 축: ${axes}`;
+      };
+
+      const ctxS2 = () => {
+        const d = data.s2; if (!d) return "";
+        const picked = [];
+        arr(d.channels).forEach((ch) => arr(ch.items).forEach((it) => {
+          if (sel.perc.includes(it.id)) picked.push(`${ch.sense}·${it.name} — ${it.change}`);
+        }));
+        return `\n[확정된 지각 특성]\n${picked.join("\n") || "-"}`;
+      };
+
+      const ctxS3 = () => {
+        const d = data.s3; if (!d) return "";
+        const picked = arr(d.properties).filter((p) => sel.props.includes(p.id))
+          .map((p) => `${p.name} — ${p.direction}`);
+        return `\n[선택된 물성]\n${picked.join("\n") || "-"}`;
+      };
+
+      const ctxS4 = () => {
+        const d = data.s4; if (!d) return "";
+        const p = arr(d.product).filter((x) => sel.prod.includes(x.id)).map((x) => `${x.title}: ${x.material}/${x.finish}`);
+        const u = arr(d.ux).filter((x) => sel.ux.includes(x.id)).map((x) => `${x.layer}·${x.title}: ${x.digital}`);
+        return `\n[확정된 구현안]\n제품: ${p.join(" | ") || "-"}\nUX: ${u.join(" | ") || "-"}`;
+      };
+
+      /* ── 실행 래퍼 ── */
+      const run = async (key, fn) => {
+        if (!apiKey) {
+          setErr("API 키가 입력되지 않았습니다. 0단계(브리프)에서 API 키를 먼저 입력해 주세요.");
+          return;
+        }
+        setBusy(key); setErr(null); setProg("");
+        try {
+          await fn((cur, total) => setProg(`${cur} / ${total}`));
+          setStaleFrom(null);
+        } catch (e) {
+          setErr(e.message === "API_KEY_MISSING" ? "API 키를 입력해 주세요." : (e.message || "생성에 실패했습니다. 다시 시도해 주세요."));
+        } finally { setBusy(null); setProg(""); }
+      };
+
+      const hint = (k) => (tweak[k] ? `\n[사용자 조정 요청] ${tweak[k]}` : "");
+
+      /* ── 1. 감성 해석 ── */
+      const gen1 = () => run("s1", async (p) => {
+        p(1, 2);
+        const a = await askGemini(apiKey, RULES, `${ctxBrief()}${hint("s1")}
+
+[1/5 감성 해석] 1부. 키워드를 사전적 의미로만 해석하지 말고, 복수 키워드는 결합된 통합 감성으로 본다.
+서로 다른 해석 각도의 감성 정의 후보 3개와 감성 축 3개를 낸다.
+
+{"definitions":[{"id":"d1","angle":"해석 관점 8자 이내","text":"감성 정의 한 문장 50자 이내"}],
+"axes":[{"left":"왼쪽 극 6자 이내","right":"오른쪽 극 6자 이내","value":0~100,"note":"이 위치를 권하는 이유 40자 이내"}]}
+definitions 정확히 3개, axes 정확히 3개.`);
+
+        p(2, 2);
+        const b = await askGemini(apiKey, RULES, `${ctxBrief()}${hint("s1")}
+
+[1/5 감성 해석] 2부. 감성의 구성 요소와, 이 감성이 부정적으로 변질될 가능성을 정리한다.
+
+{"components":[{"name":"구성 요소 8자 이내","desc":"35자 이내"}],
+"impression":"적용 대상에서 사용자가 받아야 할 인상 70자 이내",
+"risks":[{"from":"의도한 감성","to":"변질된 인상","note":"언제 그렇게 되는가 40자 이내"}]}
+components 5개, risks 3개.`);
+
+        const merged = { ...a, ...b };
+        setData((s) => ({ ...s, s1: merged }));
+        setSel((s) => ({ ...s, axes: Object.fromEntries(arr(merged.axes).map((x, i) => [i, x.value])) }));
+      });
+
+      /* ── 2. 지각 특성 ── */
+      const gen2 = () => run("s2", async (p) => {
+        const basePrompt = `${ctxBrief()}${ctxS1()}${hint("s2")}\n\n[2/5 지각 특성] 확정된 감성이 어떤 감각적 지각을 통해 발생하는지 변환한다.`;
+        p(1, 2);
+        const a = await askGemini(apiKey, RULES, `${basePrompt}
+1부: 이 프로젝트에서 가장 지배적인 감각 채널 2개를 고르고 항목 5개를 낸다.
+채널은 시각 / 촉각 / 청각 / 움직임 / 공간 중에서 고른다.
+
+{"channels":[{"sense":"시각","items":[{"id":"1","name":"지각 특성 12자 이내","change":"사용자가 느끼는 변화 40자 이내","link":"감성과 연결되는 이유 40자 이내"}]}]}
+항목 합계 정확히 5개.`);
+
+        const used = arr(a.channels).map((c) => `${c.sense}: ${arr(c.items).map((i) => i.name).join(", ")}`).join(" / ");
+        p(2, 2);
+        const b = await askGemini(apiKey, RULES, `${basePrompt}
+2부: 아래는 이미 도출된 항목이다. 겹치지 않는 다른 감각 채널을 중심으로 항목 5개를 추가한다.
+[이미 도출됨] ${used || "없음"}
+
+{"channels":[{"sense":"촉각","items":[{"id":"1","name":"지각 특성 12자 이내","change":"사용자가 느끼는 변화 40자 이내","link":"감성과 연결되는 이유 40자 이내"}]}]}
+항목 합계 정확히 5개.`);
+
+        const A = arr(a.channels).map((c) => ({ ...c, items: pfx(c.items, `a${c.sense}`) }));
+        const B = arr(b.channels).map((c) => ({ ...c, items: pfx(c.items, `b${c.sense}`) }));
+        setData((s) => ({ ...s, s2: { channels: mergeChannels(A, B) } }));
+      });
+
+      /* ── 3. 물성 도출 ── */
+      const gen3 = () => run("s3", async (p) => {
+        const basePrompt = `${ctxBrief()}${ctxS1()}${ctxS2()}${hint("s3")}
+
+[3/5 물성 도출] 확정된 지각 특성을 실제 물리적 특성으로 변환한다.
+형용사 대신 공학 용어를 쓴다. 예: Specular Reflectance, Haze, Transmittance, Anisotropy, Thermal Effusivity, Elastic Modulus, Surface Roughness, Friction Coefficient, Mass Distribution.
+접촉 냉감을 열전도율 하나로만 설명하지 않는다.
+
+형식:
+{"properties":[{"id":"1","name":"영문 물성명","kr":"한글 10자 이내","category":"광학|열적|기계적|표면|구조","senses":["시각"],"perception":"연결되는 지각 35자 이내","effect":"감성 효과 35자 이내","direction":"구현 방향 35자 이내, 높게/낮게/강하게/약하게 중 명시","risk":"과도할 경우 부작용 35자 이내","weight":"매우 높음|높음|중간","swatch":"${SWATCHES.join("|")} 중 하나"}]}`;
+
+        p(1, 2);
+        const a = await askGemini(apiKey, RULES, `${basePrompt}\n\n1부: 시각·광학 계열을 중심으로 물성 3개를 낸다. 정확히 3개.`);
+        const used = arr(a.properties).map((x) => x.name).join(", ");
+        p(2, 2);
+        const b = await askGemini(apiKey, RULES, `${basePrompt}\n\n2부: 아래와 겹치지 않게 촉각·열적·기계적·표면·구조 계열에서 물성 3개를 낸다. 정확히 3개.\n[이미 도출됨] ${used || "없음"}`);
+
+        setData((s) => ({ ...s, s3: { properties: [...pfx(a.properties, "a"), ...pfx(b.properties, "b")] } }));
+      });
+
+      /* ── 4. 구현 방법 ── */
+      const gen4 = () => run("s4", async (p) => {
+        const wantP = brief.target.includes("제품");
+        const wantU = brief.target.includes("UX");
+        const basePrompt = `${ctxBrief()}${ctxS1()}${ctxS3()}${hint("s4")}\n\n[4/5 구현 방법]`;
+        const total = (wantP ? 2 : 0) + (wantU ? 2 : 0);
+        let step = 0;
+        const tick = () => p(++step, total);
+        let out = {};
+
+        if (wantP) {
+          tick();
+          const a = await askGemini(apiKey, RULES, `${basePrompt}
+1부: 선택된 물성 간의 시너지와 충돌을 먼저 정리하고, 제품 구현안 2개를 '물성 → 소재 → 가공 → 표면처리' 순서로 제안한다.
+소재의 장점을 과장하지 않는다.
+
+{"conflicts":[{"a":"물성A","b":"물성B","note":"충돌 또는 시너지 40자 이내"}],
+"product":[{"id":"1","title":"구현안 이름 12자 이내","target":"목표 물성","material":"소재","process":"가공법","finish":"표면처리","principle":"구현 원리 40자 이내","effect":"감성 효과 30자 이내","pros":"장점 30자 이내","cons":"리스크 35자 이내, 지문·스크래치·오염 중 해당되는 것","mass":"양산 고려사항 30자 이내"}]}
+conflicts 2개, product 정확히 2개.`);
+          out = { ...out, conflicts: arr(a.conflicts), product: pfx(a.product, "a") };
+
+          tick();
+          const b = await askGemini(apiKey, RULES, `${basePrompt}
+2부: 아래와 다른 접근의 제품 구현안 2개를 추가한다. 소재 계열이나 표면처리 원리가 겹치지 않게 한다.
+[이미 제안됨] ${arr(out.product).map((x) => `${x.title}(${x.material})`).join(", ") || "없음"}
+
+{"product":[{"id":"1","title":"구현안 이름 12자 이내","target":"목표 물성","material":"소재","process":"가공법","finish":"표면처리","principle":"구현 원리 40자 이내","effect":"감성 효과 30자 이내","pros":"장점 30자 이내","cons":"리스크 35자 이내","mass":"양산 고려사항 30자 이내"}]}
+정확히 2개.`);
+          out.product = [...out.product, ...pfx(b.product, "b")];
+        }
+
+        if (wantU) {
+          const uxSpec = `{"ux":[{"id":"1","layer":"Motion","title":"구현안 이름 12자 이내","target":"목표 물성","physical":"물리적 행동 35자 이내","digital":"디지털 행동 50자 이내, 수치나 단위 포함","effect":"감성 효과 30자 이내"}]}`;
+          tick();
+          const a = await askGemini(apiKey, RULES, `${basePrompt}
+${wantP ? "3부" : "1부"}: UX 구현안 3개를 제안한다. 소재의 외형을 모방하지 말고 소재의 반응·변화·저항·속도·방향성을 디지털 행동으로 번역한다.
+layer는 Visual / Motion / Interaction 에서 하나씩 쓴다.
+${wantP ? "" : `충돌 분석도 함께 낸다: "conflicts":[{"a":"물성A","b":"물성B","note":"40자 이내"}] 2개.\n`}
+${uxSpec}
+ux 정확히 3개.`);
+          out = { ...out, ux: pfx(a.ux, "a"), conflicts: out.conflicts || arr(a.conflicts) };
+
+          tick();
+          const b = await askGemini(apiKey, RULES, `${basePrompt}
+${wantP ? "4부" : "2부"}: UX 구현안 3개를 추가한다. layer는 Haptic / Sound / Adaptive 에서 하나씩 쓴다.
+[이미 제안됨] ${arr(out.ux).map((x) => `${x.layer}·${x.title}`).join(", ") || "없음"}
+
+${uxSpec}${wantP ? `\n여기에 "bridge":"물리적 물성과 디지털 인터랙션이 어떻게 하나의 감성 언어가 되는지 80자 이내" 를 함께 넣는다.` : ""}
+ux 정확히 3개.`);
+          out.ux = [...out.ux, ...pfx(b.ux, "b")];
+          if (b.bridge) out.bridge = b.bridge;
+        }
+
+        setData((s) => ({ ...s, s4: out }));
+      });
+
+      /* ── 5. 경험 순간 ── */
+      const gen5 = () => run("s5", async (p) => {
+        const basePrompt = `${ctxBrief()}${ctxS1()}${ctxS3()}${ctxS4()}${hint("s5")}\n\n[5/5 경험 조건과 경험 순간]`;
+        const mSpec = `{"moments":[{"id":"1","polarity":"강함|약함","situation":"상황 35자 이내","props":"작동하는 물성","change":"물리적 또는 디지털 변화 40자 이내","perceive":"사용자가 실제로 지각하는 것 40자 이내","result":"감성 결과 30자 이내"}]}`;
+
+        p(1, 2);
+        const a = await askGemini(apiKey, RULES, `${basePrompt}
+1부: 빛 / 온도·환경 / 자세 / 움직임 / 접촉 / 시간 / UX 이벤트 조건을 폭넓게 검토한 목록과,
+감성이 가장 강하게 작동하는 경험 순간 3개를 낸다.
+
+{"conditions":["조건 12자 이내 문자열 20개"],
+"moments":[{"id":"1","polarity":"강함","situation":"상황 35자 이내","props":"작동하는 물성","change":"변화 40자 이내","perceive":"사용자가 지각하는 것 40자 이내","result":"감성 결과 30자 이내"}]}
+conditions 20개, moments 정확히 3개.`);
+
+        p(2, 2);
+        const b = await askGemini(apiKey, RULES, `${basePrompt}
+2부: 이번에는 불리한 조건을 본다. 빛이 없을 때, 제품이 뜨거워졌을 때, 지문이 묻었을 때, 빛을 등졌을 때, 누워서 쓸 때처럼
+감성이 약해지거나 사라지는 순간 3개와, 그 조건에서도 살아남는 순간 1개를 낸다.
+[이미 다룬 순간] ${arr(a.moments).map((m) => m.situation).join(" / ") || "없음"}
+
+${mSpec}
+moments 정확히 4개. 그중 3개는 polarity를 "약함"으로 한다.`);
+
+        setData((s) => ({
+          ...s,
+          s5: { conditions: arr(a.conditions), moments: [...pfx(a.moments, "a"), ...pfx(b.moments, "b")] },
+        }));
+      });
+
+      /* ── 요약 ── */
+      const gen6 = () => run("sum", async (p) => {
+        p(1, 1);
+        const picked = arr((data.s5 || {}).moments).filter((m) => sel.moments.includes(m.id))
+          .map((m) => `${m.polarity}·${m.situation}`).join("\n");
+        const r = await askGemini(apiKey, RULES, `${ctxBrief()}${ctxS1()}${ctxS3()}${ctxS4()}
+[선택된 경험 순간]
+${picked || "-"}
+
+전체 결과를 정리한다.
+{"principles":["핵심 디자인 원칙 45자 이내 4개"],
+"strong":["감성이 가장 잘 나타나는 조건 20자 이내 3개"],
+"weak":["감성이 약해지는 조건 20자 이내 3개"],
+"sentence":{"a":"물성 서술 20자 이내","b":"순간 서술 20자 이내","c":"경험 서술 20자 이내"}}
+sentence는 "이 디자인은 [a]한 물성을 통해 사용자가 [b]한 순간에 [c]을 경험하도록 설계한다" 에 들어갈 조각이다.`);
+        setData((s) => ({ ...s, sum: r }));
+      });
+
+      /* ── 마크다운 빌드 ── */
+      const buildMarkdown = () => {
+        const L = [];
+        const d1 = data.s1 || {}, d2 = data.s2 || {}, d3 = data.s3 || {}, d4 = data.s4 || {}, d5 = data.s5 || {}, ds = data.sum || {};
+        L.push(`# CMF Materiality 설계 요약`, ``);
+        L.push(`- 감성 키워드: ${getMergedKeywords()}`, `- 적용 대상: ${brief.target}`, `- 제품/서비스: ${brief.product || "-"}`, `- 추가 조건: ${brief.notes || "-"}`, ``);
+        const def = arr(d1.definitions).find((x) => x.id === sel.def);
+        if (def) L.push(`## 1. 감성 정의`, def.text, ``);
+        if (sel.comps.length) L.push(`구성 요소: ${sel.comps.join(", ")}`, ``);
+        if (arr(d1.axes).length) L.push(`감성 축: ` + d1.axes.map((a, i) => `${a.left}↔${a.right} ${sel.axes[i] ?? a.value}`).join(" / "), ``);
+        const percs = [];
+        arr(d2.channels).forEach((ch) => arr(ch.items).forEach((it) => { if (sel.perc.includes(it.id)) percs.push(`- [${ch.sense}] ${it.name} — ${it.change}`); }));
+        if (percs.length) L.push(`## 2. 핵심 지각 특성`, ...percs, ``);
+        const props = arr(d3.properties).filter((x) => sel.props.includes(x.id));
+        if (props.length) {
+          L.push(`## 3. 선택 물성`, ``, `| 물성 | 감각 | 구현 방향 | 중요도 |`, `| --- | --- | --- | --- |`);
+          props.forEach((x) => L.push(`| ${x.name} (${x.kr || ""}) | ${arr(x.senses).join("·")} | ${x.direction} | ${x.weight} |`));
+          L.push(``);
+        }
+        const prods = arr(d4.product).filter((x) => sel.prod.includes(x.id));
+        if (prods.length) { L.push(`## 4-A. 제품 구현`); prods.forEach((x) => L.push(`### ${x.title}`, `- 소재: ${x.material}`, `- 가공: ${x.process}`, `- 표면처리: ${x.finish}`, `- 원리: ${x.principle}`, `- 리스크: ${x.cons}`, `- 양산: ${x.mass}`, ``)); }
+        const uxs = arr(d4.ux).filter((x) => sel.ux.includes(x.id));
+        if (uxs.length) { L.push(`## 4-B. UX 구현`); uxs.forEach((x) => L.push(`### [${x.layer}] ${x.title}`, `- 물리적 행동: ${x.physical}`, `- 디지털 행동: ${x.digital}`, `- 감성 효과: ${x.effect}`, ``)); }
+        if (d4.bridge) L.push(`## 4-C. 제품과 UX의 연결`, d4.bridge, ``);
+        const ms = arr(d5.moments).filter((m) => sel.moments.includes(m.id));
+        if (ms.length) { L.push(`## 5. 대표 경험 순간`); ms.forEach((m) => L.push(`### (${m.polarity}) ${m.situation}`, `- 작동 물성: ${m.props}`, `- 변화: ${m.change}`, `- 지각: ${m.perceive}`, `- 감성 결과: ${m.result}`, ``)); }
+        if (ds.principles) L.push(`## 핵심 디자인 원칙`, ...arr(ds.principles).map((x) => `- ${x}`), ``);
+        if (ds.strong) L.push(`감성이 잘 나타나는 조건: ${arr(ds.strong).join(" / ")}`, ``);
+        if (ds.weak) L.push(`감성이 약해지는 조건: ${arr(ds.weak).join(" / ")}`, ``);
+        if (ds.sentence) L.push(`> 이 디자인은 **${ds.sentence.a}**한 물성을 통해 사용자가 **${ds.sentence.b}**한 순간에 **${ds.sentence.c}**을 경험하도록 설계한다.`);
+        return L.join("\n");
+      };
+
+      const copyMd = async () => {
+        const md = buildMarkdown();
+        try { await navigator.clipboard.writeText(md); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+        catch (e) {
+          const ta = document.createElement("textarea");
+          ta.value = md; document.body.appendChild(ta); ta.select();
+          try { document.execCommand("copy"); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+          catch (e2) { setErr("복사에 실패했습니다. 요약 내용을 직접 선택해 주세요."); }
+          document.body.removeChild(ta);
+        }
+      };
+
+      const resetAll = () => {
+        setBrief({ keywords: "", selectedKeywords: [], target: "제품+UX", product: "", notes: "" });
+        setData({}); setSel({ def: null, comps: [], axes: {}, perc: [], props: [], prod: [], ux: [], moments: [] });
+        setTweak({}); setStage(0); setErr(null); setStaleFrom(null); setRestored(false);
+      };
+
+      const reach = (n) => {
+        if (n === 0) return true;
+        if (n === 1) return getMergedKeywords().length > 0;
+        if (n === 2) return !!sel.def;
+        if (n === 3) return sel.perc.length > 0;
+        if (n === 4) return sel.props.length > 0;
+        if (n === 5) return sel.prod.length + sel.ux.length > 0;
+        if (n === 6) return sel.moments.length > 0;
+        return false;
+      };
+
+      const GENS = [null, gen1, gen2, gen3, gen4, gen5, gen6];
+      const isStale = staleFrom !== null && stage >= staleFrom;
+
+      return (
+        <div className="wb">
+          <aside className="rail">
+            <div className="brand">
+              <div className="brand-mark">CMF</div>
+              <div className="brand-name">Materiality<br />Workbench</div>
+            </div>
+            <nav className="steps" aria-label="설계 단계">
+              {STAGES.map((s) => {
+                const ok = reach(s.n);
+                return (
+                  <button key={s.key} className={`step ${stage === s.n ? "on" : ""} ${ok ? "" : "off"}`}
+                    disabled={!ok} onClick={() => setStage(s.n)}>
+                    <span className="step-n">{s.n === 0 ? "—" : s.n === 6 ? "∑" : `0${s.n}`}</span>
+                    <span className="step-t">
+                      <span className="step-kr">{s.label}</span>
+                      <span className="step-en">{s.en}</span>
+                    </span>
+                    {s.n < stage && ok && <span className="step-dot" />}
+                  </button>
+                );
+              })}
+            </nav>
+            <button className="reset" onClick={resetAll}>새 프로젝트 시작</button>
+          </aside>
+
+          <main className="main" ref={mainRef}>
+            <div className="col">
+              <div className="chain">
+                {["Emotion", "Perception", "Property", "Translation", "Experience"].map((c, i) => (
+                  <React.Fragment key={c}>
+                    <span className={`chain-i ${stage === i + 1 ? "on" : ""} ${stage > i + 1 ? "past" : ""}`}>{c}</span>
+                    {i < 4 && <span className="chain-arrow">→</span>}
+                  </React.Fragment>
+                ))}
+              </div>
+
+              {restored && stage === 0 && <div className="note">이전 작업을 불러왔습니다. 이어서 진행하거나 새 프로젝트를 시작할 수 있습니다.</div>}
+              {isStale && <div className="note warn">앞 단계의 선택이 바뀌었습니다. 이 단계의 제안을 다시 받아야 새 조건이 반영됩니다.</div>}
+              {err && (
+                <div className="note warn">
+                  {err}
+                  {stage > 0 && <button className="inline-retry" onClick={() => GENS[stage] && GENS[stage]()}>다시 시도</button>}
+                </div>
+              )}
+
+              {stage === 0 && <Brief brief={brief} setBrief={setBrief} apiKey={apiKey} setApiKey={setApiKey} getMergedKeywords={getMergedKeywords} onStart={() => { setStage(1); if (!data.s1) gen1(); }} />}
+              {stage === 1 && <Stage1 {...{ data: data.s1, sel, setSel, markStale, busy, prog, gen1, tweak, setTweak, brief, getMergedKeywords }} />}
+              {stage === 2 && <Stage2 {...{ data: data.s2, sel, toggle, busy, prog, gen2, tweak, setTweak }} />}
+              {stage === 3 && <Stage3 {...{ data: data.s3, sel, toggle, busy, prog, gen3, tweak, setTweak }} />}
+              {stage === 4 && <Stage4 {...{ data: data.s4, sel, toggle, busy, prog, gen4, tweak, setTweak }} />}
+              {stage === 5 && <Stage5 {...{ data: data.s5, sel, toggle, busy, prog, gen5, tweak, setTweak }} />}
+              {stage === 6 && <Summary {...{ data, sel, brief, busy, prog, gen6, copyMd, copied, getMergedKeywords }} />}
+
+              {stage > 0 && (
+                <div className="foot">
+                  <button className="btn ghost" onClick={() => setStage(stage - 1)}>이전 단계</button>
+                  {stage < 6 && (
+                    <button className="btn" disabled={!reach(stage + 1)}
+                      onClick={() => {
+                        const next = stage + 1;
+                        setStage(next);
+                        const k = STAGES[next].key;
+                        if (!data[k] || (staleFrom !== null && next >= staleFrom)) GENS[next] && GENS[next]();
+                      }}>
+                      {reach(stage + 1) ? `다음 단계 · ${STAGES[stage + 1].label}` : GUARD[stage]}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </main>
+        </div>
+      );
+    }
+
+    const GUARD = {
+      1: "감성 정의를 하나 선택하세요",
+      2: "지각 특성을 하나 이상 선택하세요",
+      3: "물성을 하나 이상 선택하세요",
+      4: "구현안을 하나 이상 선택하세요",
+      5: "경험 순간을 하나 이상 선택하세요",
+    };
+
+    /* ── 하위 컴포넌트들 ───────────────────────────────────────────── */
+    function Head({ n, kr, en, desc }) {
+      return (
+        <header className="head">
+          <div className="head-tag">{n === 0 ? "SETUP" : `STAGE ${n} / 5`}</div>
+          <h1 className="head-h">{kr}<span className="head-en">{en}</span></h1>
+          <p className="head-d">{desc}</p>
+        </header>
+      );
+    }
+
+    function Regen({ has, busy, onRun, tweak, setTweak, k }) {
+      return (
+        <div className="regen">
+          <input className="regen-in" placeholder="제안 방향 조정 — 예: 촉각 중심으로, 저비용 양산 전제로"
+            value={tweak[k] || ""} onChange={(e) => setTweak({ ...tweak, [k]: e.target.value })} />
+          <button className="btn small" onClick={onRun} disabled={!!busy}>{busy ? "생성 중" : has ? "제안 다시 받기" : "제안 받기"}</button>
+        </div>
+      );
+    }
+
+    function Loading({ text, prog }) {
+      return (
+        <div className="loading">
+          <div className="loading-bar"><span /></div>
+          <p>{text}{prog ? <em className="mono"> · {prog}</em> : null}</p>
+        </div>
+      );
+    }
+
+    function Empty({ onRun, busy, label }) {
+      return (
+        <div className="empty">
+          <p>아직 제안이 없습니다.</p>
+          <button className="btn" onClick={onRun} disabled={!!busy}>{busy ? "생성 중" : label}</button>
+        </div>
+      );
+    }
+
+    const Count = ({ n }) => <span className="count">{n}개 선택됨</span>;
+
+    /* ── 0. 브리프 (키워드 선택 UI 추가) ───────────────────────────────── */
+    function Brief({ brief, setBrief, apiKey, setApiKey, getMergedKeywords, onStart }) {
+      const ok = getMergedKeywords().trim().length > 0 && apiKey.trim().length > 0;
+
+      const toggleKeyword = (kw) => {
+        const current = brief.selectedKeywords || [];
+        if (current.includes(kw)) {
+          setBrief({ ...brief, selectedKeywords: current.filter(k => k !== kw) });
+        } else {
+          setBrief({ ...brief, selectedKeywords: [...current, kw] });
+        }
+      };
+
+      return (
+        <React.Fragment>
+          <Head n={0} kr="구현하고 싶은 감성에서 시작합니다" en="Brief"
+            desc="감성 키워드와 적용 대상을 넣으면 다섯 단계에 걸쳐 후보를 제안합니다. 각 단계에서 선택한 내용만 다음 단계로 넘어갑니다." />
+          <div className="form">
+            
+            <label className="f">
+              <span className="f-l">Gemini API Key <em>필수</em></span>
+              <input type="password" className="f-i" value={apiKey} placeholder="AI Studio에서 발급받은 API 키 입력"
+                onChange={(e) => setApiKey(e.target.value)} />
+              <span className="f-h">API 키는 브라우저 내부 스토리지에만 안전하게 보관됩니다.</span>
+            </label>
+            
+            <hr className="divider" />
+
+            <div className="f">
+              <span className="f-l">감성 키워드 선택 <em>필수 (복수 선택 가능)</em></span>
+              <span className="f-h">제시된 50개의 키워드 중 원하는 감성을 여러 개 골라보세요.</span>
+              
+              <div>
+                {EMOTION_CATEGORIES.map(cat => (
+                  <div key={cat.name} className="kw-cat">
+                    <h4 className="kw-cat-title">{cat.name}</h4>
+                    <div className="kw-chips">
+                      {cat.keywords.map(kw => {
+                        const isOn = (brief.selectedKeywords || []).includes(kw);
+                        return (
+                          <button key={kw} 
+                            className={`kw-chip ${isOn ? 'on' : ''}`} 
+                            onClick={() => toggleKeyword(kw)}>
+                            {kw}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <label className="f">
+              <span className="f-l">감성 키워드 직접 입력 <em>(선택사항)</em></span>
+              <input className="f-i" value={brief.keywords} placeholder="위 목록에 없는 키워드를 쉼표로 구분해 적어주세요."
+                onChange={(e) => setBrief({ ...brief, keywords: e.target.value })} />
+            </label>
+
+            <div className="kw-preview">
+              총 적용 예정 키워드: {getMergedKeywords() || "선택 및 입력된 키워드가 없습니다."}
+            </div>
+
+            <hr className="divider" />
+
+            <div className="f">
+              <span className="f-l">적용 대상</span>
+              <div className="seg">
+                {["제품", "UX", "제품+UX"].map((t) => (
+                  <button key={t} className={`seg-b ${brief.target === t ? "on" : ""}`}
+                    onClick={() => setBrief({ ...brief, target: t })}>{t}</button>
+                ))}
+              </div>
+              <span className="f-h">제품은 소재·가공·표면처리로, UX는 모션·햅틱·사운드로 번역합니다.</span>
+            </div>
+
+            <label className="f">
+              <span className="f-l">제품 또는 서비스</span>
+              <input className="f-i" value={brief.product} placeholder="얇고 정밀한 프리미엄 스마트폰"
+                onChange={(e) => setBrief({ ...brief, product: e.target.value })} />
+            </label>
+
+            <label className="f">
+              <span className="f-l">추가 조건</span>
+              <textarea className="f-t" rows={3} value={brief.notes}
+                placeholder="주요 기능, 사용 환경, 브랜드 특성, 사용자, 피하고 싶은 이미지 등"
+                onChange={(e) => setBrief({ ...brief, notes: e.target.value })} />
+            </label>
+
+            <button className="btn big" disabled={!ok} onClick={onStart}>
+              {ok ? "감성 해석 시작" : "정보(키워드 및 API 키)를 모두 입력하세요"}
+            </button>
+          </div>
+        </React.Fragment>
+      );
+    }
+
+    /* ── 1. 감성 해석 ────────────────────────────────────────── */
+    function Stage1({ data, sel, setSel, markStale, busy, prog, gen1, tweak, setTweak, brief, getMergedKeywords }) {
+      return (
+        <React.Fragment>
+          <Head n={1} kr="감성 해석" en="Emotion"
+            desc={`"${getMergedKeywords()}"를 서로 다른 각도로 해석했습니다. 프로젝트에 맞는 정의를 하나 고르고, 구성 요소와 감성 축을 조정하세요.`} />
+          <Regen has={!!data} busy={busy === "s1"} onRun={gen1} tweak={tweak} setTweak={setTweak} k="s1" />
+          {busy === "s1" && <Loading text="키워드를 분해하고 통합 감성을 정의하는 중" prog={prog} />}
+          {!data && busy !== "s1" && <Empty onRun={gen1} busy={busy} label="감성 해석 제안 받기" />}
+
+          {data && (
+            <React.Fragment>
+              {arr(data.definitions).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">핵심 감성 정의 <span className="sec-n">하나 선택</span></h2>
+                  <div className="stack">
+                    {data.definitions.map((d) => (
+                      <button key={d.id} className={`pick ${sel.def === d.id ? "on" : ""}`} aria-pressed={sel.def === d.id}
+                        onClick={() => { setSel((p) => ({ ...p, def: d.id })); markStale(1); }}>
+                        <span className="pick-tag">{d.angle}</span>
+                        <span className="pick-txt">{d.text}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {data.impression && (
+                <section className="sec">
+                  <h2 className="sec-h">적용 대상에서의 의미</h2>
+                  <p className="body">{data.impression}</p>
+                </section>
+              )}
+
+              {arr(data.components).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">감성 구성 요소 <span className="sec-n">여러 개 선택</span> <Count n={sel.comps.length} /></h2>
+                  <div className="chips">
+                    {data.components.map((c) => (
+                      <button key={c.name} className={`chip ${sel.comps.includes(c.name) ? "on" : ""}`}
+                        aria-pressed={sel.comps.includes(c.name)}
+                        onClick={() => { setSel((p) => ({ ...p, comps: p.comps.includes(c.name) ? p.comps.filter((x) => x !== c.name) : [...p.comps, c.name] })); markStale(1); }}>
+                        <span className="chip-n">{c.name}</span>
+                        <span className="chip-d">{c.desc}</span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {arr(data.axes).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">감성의 방향 <span className="sec-n">직접 조정</span></h2>
+                  {data.axes.map((a, i) => (
+                    <div className="axis" key={i}>
+                      <div className="axis-top">
+                        <span>{a.left}</span><span className="axis-v">{sel.axes[i] ?? a.value}</span><span>{a.right}</span>
+                      </div>
+                      <input type="range" min="0" max="100" className="axis-r" value={sel.axes[i] ?? a.value ?? 50}
+                        onChange={(e) => { const v = +e.target.value; setSel((p) => ({ ...p, axes: { ...p.axes, [i]: v } })); markStale(1); }} />
+                      <p className="axis-n">{a.note}</p>
+                    </div>
+                  ))}
+                </section>
+              )}
+
+              {arr(data.risks).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">피해야 할 오해</h2>
+                  <div className="risks">
+                    {data.risks.map((r, i) => (
+                      <div className="risk" key={i}>
+                        <div className="risk-t"><b>{r.from}</b> <span>→</span> <b className="bad">{r.to}</b></div>
+                        <p>{r.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+            </React.Fragment>
+          )}
+        </React.Fragment>
+      );
+    }
+
+    /* ── 2. 지각 특성 ────────────────────────────────────────── */
+    function Stage2({ data, sel, toggle, busy, prog, gen2, tweak, setTweak }) {
+      return (
+        <React.Fragment>
+          <Head n={2} kr="지각 특성" en="Perception"
+            desc="확정된 감성이 어떤 감각을 통해 발생하는지로 바꿉니다. 물성으로 넘길 지각 특성을 고르세요." />
+          <Regen has={!!data} busy={busy === "s2"} onRun={gen2} tweak={tweak} setTweak={setTweak} k="s2" />
+          {busy === "s2" && <Loading text="감각 채널별 지각 특성을 도출하는 중" prog={prog} />}
+          {!data && busy !== "s2" && <Empty onRun={gen2} busy={busy} label="지각 특성 제안 받기" />}
+
+          {data && (
+            <React.Fragment>
+              <div className="secbar">선택한 지각 특성만 3단계 물성 도출의 입력이 됩니다 <Count n={sel.perc.length} /></div>
+              {arr(data.channels).map((ch) => (
+                <section className="sec" key={ch.sense}>
+                  <h2 className="sec-h">{ch.sense}</h2>
+                  <div className="stack">
+                    {arr(ch.items).map((it) => (
+                      <button key={it.id} className={`pick ${sel.perc.includes(it.id) ? "on" : ""}`}
+                        aria-pressed={sel.perc.includes(it.id)} onClick={() => toggle("perc", it.id, 2)}>
+                        <span className="pick-tag">{it.name}</span>
+                        <span className="pick-txt">{it.change}</span>
+                        {it.link && <span className="pick-sub"><em>감성 연결</em> {it.link}</span>}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </React.Fragment>
+          )}
+        </React.Fragment>
+      );
+    }
+
+    /* ── 3. 물성 도출 ────────────────────────────────────────── */
+    function Stage3({ data, sel, toggle, busy, prog, gen3, tweak, setTweak }) {
+      const picked = arr(data && data.properties).filter((p) => sel.props.includes(p.id));
+      return (
+        <React.Fragment>
+          <Head n={3} kr="물성 도출" en="Physical Property"
+            desc="지각 특성을 공학 물성으로 변환했습니다. 구현에 반영할 물성을 하나 이상 선택하면 다음 단계에서 물성 간 시너지와 충돌까지 분석합니다." />
+          <Regen has={!!data} busy={busy === "s3"} onRun={gen3} tweak={tweak} setTweak={setTweak} k="s3" />
+          {busy === "s3" && <Loading text="지각 특성을 광학·열적·기계적 물성으로 변환하는 중" prog={prog} />}
+          {!data && busy !== "s3" && <Empty onRun={gen3} busy={busy} label="물성 제안 받기" />}
+
+          {data && (
+            <React.Fragment>
+              <div className="props">
+                {arr(data.properties).map((p, i) => {
+                  const on = sel.props.includes(p.id);
+                  const sw = SWATCHES.includes(p.swatch) ? p.swatch : "default";
+                  return (
+                    <button key={p.id} className={`prop ${on ? "on" : ""}`} aria-pressed={on} onClick={() => toggle("props", p.id, 3)}>
+                      <div className={`sw sw-${sw}`} aria-hidden="true" />
+                      <div className="prop-top">
+                        <span className="prop-i">{String(i + 1).padStart(2, "0")}</span>
+                        <span className={`w w-${String(p.weight || "").replace(/\s/g, "")}`}>{p.weight}</span>
+                      </div>
+                      <h3 className="prop-n">{p.name}</h3>
+                      <div className="prop-meta">{[p.kr, p.category, arr(p.senses).join("·")].filter(Boolean).join(" · ")}</div>
+                      <dl className="prop-dl">
+                        <dt>연결 지각</dt><dd>{p.perception}</dd>
+                        <dt>감성 효과</dt><dd>{p.effect}</dd>
+                        <dt>구현 방향</dt><dd>{p.direction}</dd>
+                        <dt className="bad">부작용</dt><dd>{p.risk}</dd>
+                      </dl>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <section className="sec">
+                <h2 className="sec-h">선택 요약 <Count n={sel.props.length} /></h2>
+                {picked.length === 0 ? (
+                  <p className="body dim">구현에 반영하고 싶은 물성을 한 개 이상 선택해 주세요. 여러 개를 선택하면 물성 간의 시너지와 충돌 가능성까지 함께 분석합니다.</p>
+                ) : (
+                  <table className="tbl">
+                    <thead><tr><th>번호</th><th>물성</th><th>감각</th><th>기대 감성</th><th>중요도</th></tr></thead>
+                    <tbody>
+                      {picked.map((p, i) => (
+                        <tr key={p.id}>
+                          <td className="mono">{String(i + 1).padStart(2, "0")}</td>
+                          <td className="mono">{p.name}</td>
+                          <td>{arr(p.senses).join("·")}</td>
+                          <td>{p.effect}</td>
+                          <td>{p.weight}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </section>
+            </React.Fragment>
+          )}
+        </React.Fragment>
+      );
+    }
+
+    /* ── 4. 구현 방법 ────────────────────────────────────────── */
+    function Stage4({ data, sel, toggle, busy, prog, gen4, tweak, setTweak }) {
+      return (
+        <React.Fragment>
+          <Head n={4} kr="구현 방법" en="Translation"
+            desc="선택한 물성을 실제 소재·공정과 디지털 행동으로 번역했습니다. 가져갈 구현안을 고르세요." />
+          <Regen has={!!data} busy={busy === "s4"} onRun={gen4} tweak={tweak} setTweak={setTweak} k="s4" />
+          {busy === "s4" && <Loading text="소재·가공·표면처리와 디지털 행동을 구성하는 중" prog={prog} />}
+          {!data && busy !== "s4" && <Empty onRun={gen4} busy={busy} label="구현안 제안 받기" />}
+
+          {data && (
+            <React.Fragment>
+              {arr(data.conflicts).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">물성 간 시너지와 충돌</h2>
+                  <div className="risks">
+                    {data.conflicts.map((c, i) => (
+                      <div className="risk" key={i}>
+                        <div className="risk-t"><b className="mono">{c.a}</b> <span>×</span> <b className="mono">{c.b}</b></div>
+                        <p>{c.note}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {arr(data.product).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">제품 구현안 <span className="sec-n">여러 개 선택</span> <Count n={sel.prod.length} /></h2>
+                  <div className="stack">
+                    {data.product.map((m) => (
+                      <button key={m.id} className={`pick wide ${sel.prod.includes(m.id) ? "on" : ""}`}
+                        aria-pressed={sel.prod.includes(m.id)} onClick={() => toggle("prod", m.id, 4)}>
+                        <span className="pick-tag">{m.title}</span>
+                        <span className="flow">
+                          <b>{m.target}</b><i>→</i><b>{m.material}</b><i>→</i><b>{m.process}</b><i>→</i><b>{m.finish}</b>
+                        </span>
+                        <dl className="prop-dl">
+                          <dt>원리</dt><dd>{m.principle}</dd>
+                          <dt>감성 효과</dt><dd>{m.effect}</dd>
+                          <dt>장점</dt><dd>{m.pros}</dd>
+                          <dt className="bad">리스크</dt><dd>{m.cons}</dd>
+                          <dt>양산</dt><dd>{m.mass}</dd>
+                        </dl>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {arr(data.ux).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">UX 구현안 <span className="sec-n">여러 개 선택</span> <Count n={sel.ux.length} /></h2>
+                  <div className="stack">
+                    {data.ux.map((u) => (
+                      <button key={u.id} className={`pick wide ${sel.ux.includes(u.id) ? "on" : ""}`}
+                        aria-pressed={sel.ux.includes(u.id)} onClick={() => toggle("ux", u.id, 4)}>
+                        <span className="pick-tag"><em className="layer">{u.layer}</em>{u.title}</span>
+                        <div className="tr">
+                          <div><span>선택 물성</span><p className="mono">{u.target}</p></div>
+                          <div><span>물리적 행동</span><p>{u.physical}</p></div>
+                          <div><span>디지털 행동</span><p>{u.digital}</p></div>
+                          <div><span>감성 효과</span><p>{u.effect}</p></div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {data.bridge && (
+                <section className="sec bridge">
+                  <h2 className="sec-h">제품과 UX의 연결 원리</h2>
+                  <p className="body">{data.bridge}</p>
+                </section>
+              )}
+            </React.Fragment>
+          )}
+        </React.Fragment>
+      );
+    }
+
+    /* ── 5. 경험 순간 ────────────────────────────────────────── */
+    function Stage5({ data, sel, toggle, busy, prog, gen5, tweak, setTweak }) {
+      return (
+        <React.Fragment>
+          <Head n={5} kr="경험 조건과 경험 순간" en="Experience"
+            desc="빛, 온도, 자세, 움직임, 접촉, 시간, UX 이벤트를 검토한 뒤 의미 있는 순간을 뽑았습니다. 감성이 약해지는 순간도 함께 봅니다." />
+          <Regen has={!!data} busy={busy === "s5"} onRun={gen5} tweak={tweak} setTweak={setTweak} k="s5" />
+          {busy === "s5" && <Loading text="사용 조건을 조합하고 경험 순간을 추리는 중" prog={prog} />}
+          {!data && busy !== "s5" && <Empty onRun={gen5} busy={busy} label="경험 순간 제안 받기" />}
+
+          {data && (
+            <React.Fragment>
+              {arr(data.conditions).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">검토한 조건 <span className="sec-n">{data.conditions.length}개</span></h2>
+                  <div className="conds">{data.conditions.map((c, i) => <span className="cond" key={i}>{c}</span>)}</div>
+                </section>
+              )}
+
+              <section className="sec">
+                <h2 className="sec-h">경험 순간 <span className="sec-n">여러 개 선택</span> <Count n={sel.moments.length} /></h2>
+                <div className="stack">
+                  {arr(data.moments).map((m) => {
+                    const weak = String(m.polarity || "").includes("약");
+                    return (
+                      <button key={m.id} className={`pick wide ${weak ? "weak" : ""} ${sel.moments.includes(m.id) ? "on" : ""}`}
+                        aria-pressed={sel.moments.includes(m.id)} onClick={() => toggle("moments", m.id, 5)}>
+                        <span className="pick-tag"><em className={`pol ${weak ? "bad" : ""}`}>{weak ? "감성 약화" : "감성 강화"}</em>{m.situation}</span>
+                        <dl className="prop-dl">
+                          <dt>작동 물성</dt><dd className="mono">{m.props}</dd>
+                          <dt>변화</dt><dd>{m.change}</dd>
+                          <dt>지각</dt><dd>{m.perceive}</dd>
+                          <dt>감성 결과</dt><dd>{m.result}</dd>
+                        </dl>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            </React.Fragment>
+          )}
+        </React.Fragment>
+      );
+    }
+
+    /* ── 요약 ────────────────────────────────────────────────── */
+    function Summary({ data, sel, brief, busy, prog, gen6, copyMd, copied, getMergedKeywords }) {
+      const d = data.sum;
+      const d1 = data.s1 || {}, d3 = data.s3 || {}, d4 = data.s4 || {}, d5 = data.s5 || {};
+      const def = arr(d1.definitions).find((x) => x.id === sel.def);
+      const props = arr(d3.properties).filter((p) => sel.props.includes(p.id));
+      const ms = arr(d5.moments).filter((m) => sel.moments.includes(m.id));
+
+      return (
+        <React.Fragment>
+          <Head n={6} kr="최종 요약" en="Summary"
+            desc="다섯 단계에서 선택한 내용만 모았습니다. 마크다운으로 복사해 문서나 발표 자료에 붙여 넣을 수 있습니다." />
+
+          {!d && busy !== "sum" && <Empty onRun={gen6} busy={busy} label="요약과 디자인 원칙 생성" />}
+          {busy === "sum" && <Loading text="전체 흐름을 정리하고 원칙을 뽑는 중" prog={prog} />}
+
+          <div className="sumgrid">
+            <div className="sumcard">
+              <span className="sumlab">목표 감성</span>
+              <p className="big-kw">{getMergedKeywords()}</p>
+              <p className="body">{def ? def.text : "감성 정의 미선택"}</p>
+            </div>
+            <div className="sumcard">
+              <span className="sumlab">선택 물성</span>
+              <ul className="ul mono">{props.map((p) => <li key={p.id}>{p.name}</li>)}</ul>
+            </div>
+            <div className="sumcard">
+              <span className="sumlab">구현</span>
+              <ul className="ul">
+                {arr(d4.product).filter((x) => sel.prod.includes(x.id)).map((x) => <li key={x.id}>{x.title} — {x.material}</li>)}
+                {arr(d4.ux).filter((x) => sel.ux.includes(x.id)).map((x) => <li key={x.id}>[{x.layer}] {x.title}</li>)}
+              </ul>
+            </div>
+          </div>
+
+          {ms.length > 0 && (
+            <section className="sec">
+              <h2 className="sec-h">대표 경험 순간</h2>
+              <ol className="moments">
+                {ms.map((m) => (
+                  <li key={m.id} className={String(m.polarity).includes("약") ? "weak" : ""}>
+                    <b>{m.situation}</b><span>{m.result}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {d && (
+            <React.Fragment>
+              {arr(d.principles).length > 0 && (
+                <section className="sec">
+                  <h2 className="sec-h">핵심 디자인 원칙</h2>
+                  <ol className="rules">{d.principles.map((p, i) => <li key={i}>{p}</li>)}</ol>
+                </section>
+              )}
+              <div className="two">
+                <section className="sec">
+                  <h2 className="sec-h">가장 잘 나타나는 조건</h2>
+                  <ul className="ul">{arr(d.strong).map((x, i) => <li key={i}>{x}</li>)}</ul>
+                </section>
+                <section className="sec">
+                  <h2 className="sec-h bad">약해지는 조건</h2>
+                  <ul className="ul">{arr(d.weak).map((x, i) => <li key={i}>{x}</li>)}</ul>
+                </section>
+              </div>
+              {d.sentence && (
+                <blockquote className="final">
+                  이 디자인은 <b>{d.sentence.a}</b>한 물성을 통해 사용자가 <b>{d.sentence.b}</b>한 순간에 <b>{d.sentence.c}</b>을 경험하도록 설계한다.
+                </blockquote>
+              )}
+            </React.Fragment>
+          )}
+
+          <div className="foot">
+            <button className="btn ghost" onClick={gen6} disabled={!!busy}>{d ? "요약 다시 생성" : "요약 생성"}</button>
+            <button className="btn" onClick={copyMd}>{copied ? "복사했습니다" : "마크다운으로 복사"}</button>
+          </div>
+        </React.Fragment>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<CMFWorkbench />);
+  </script>
+</body>
+</html>
