@@ -349,36 +349,33 @@ ${perceptions.map((p, i) => `${i + 1}. [${p.category}] ${p.titleKo} — ${p.desc
 선택된 지각 특성을 물리적으로 성립시키는 핵심 물성 특성을 10~14개 범위에서 유동적으로 정의해 주세요.
 
 [핵심 관점]
-- 이 단계는 단순한 시각 변수 나열이 아니라, 앞 단계의 지각 경험을 실제 재료·표면·광학·촉각·시간 반응의 언어로 번역하는 단계입니다.
-- 물성은 선택된 감성 해석과 지각 특성이 왜 그런 경험을 만드는지 설명하는 전문적 중간 언어여야 합니다.
-- 단순히 채도, 밝기, 명암, 색상 같은 그래픽 조절 항목을 나열하지 않습니다.
-- 필요한 경우 광학 계열 물성을 포함할 수 있으나, 반드시 더 구체적인 물질 경험 언어와 연결해서 사용합니다.
+- 이 단계는 단순한 그래픽 조절값 목록이 아니라, 앞 단계의 지각 경험을 실제 재료·표면·광학·촉각·시간 반응의 언어로 번역하는 전문 CMF 해석 단계입니다.
+- 물성은 선택된 감성 해석과 지각 특성이 왜 그런 경험을 만드는지 설명하는 중간 언어여야 하며, 각 항목만 보아도 전문적인 Material Properties 제안처럼 읽혀야 합니다.
+- 물성 명칭은 너무 평면적인 단어보다, 지각과 연결되는 복합 명칭을 우선합니다. 예: Layered Optical Depth, Restorative Elasticity, Surface Damping, Boundary Softness, Directional Reflection Control, Residual Motion Recovery.
+- 단순히 채도, 밝기, 명암, 색상 같은 그래픽 조절형 단어를 핵심 물성으로 제시하지 않습니다.
 
 [선정 원칙]
 - 개수를 채우기 위해 억지로 14개를 만들지 않습니다. 선택된 지각 특성을 충분히 설명하는 데 필요한 만큼만 10~14개 범위에서 선정합니다.
 - 사용자가 선택한 각 지각 특성에는 최소 1개 이상의 직접 연결 물성이 반드시 있어야 합니다.
-- 핵심적인 지각 특성은 필요하면 2~4개의 서로 다른 물성으로 세분화합니다.
+- 중요한 지각 특성은 2~4개의 물성으로 세분화할 수 있습니다.
 - 뜻이 겹치거나 영향이 약한 물성, 앞 항목의 단순한 동의어는 제외합니다.
-- 전체 구성은 가능한 한 Optical / Surface / Mechanical / Physical / Thermal-Tactile / Temporal-Dynamic 범주를 균형 있게 검토하되, 감성·지각과 관련 없는 범주를 억지로 넣지 않습니다.
+- 전체 구성은 가능하면 Optical / Surface / Mechanical / Thermal-Tactile / Temporal-Dynamic / Structural 범주를 균형 있게 검토하되, 감성·지각과 관련 없는 범주는 억지로 넣지 않습니다.
 
-[우선 사용해야 하는 물성 언어의 방향]
-- 지각 특성과 직접 연결된 복합 물성 언어를 우선합니다. 예: Initial Response Speed, Tactile Compliance, Restorative Elasticity, Surface Damping, Edge Softness, Layered Optical Depth, Diffused Glow Gradient, Directional Reflection Control, Contact Warmth, Residual Motion Recovery, Spatial Light Spread, Boundary Softness, Micro-Texture Grain, Structural Density Impression.
-- Brightness, Contrast, Color Saturation, Hue, Opacity 같은 단순 이미지 조절형 용어는 단독 핵심 물성으로 쓰지 않습니다.
-- 꼭 필요할 때만 Reflectivity, Light Diffusion, Optical Depth, Surface Friction, Elasticity, Recovery Speed처럼 재료 경험을 설명하는 물성과 결합해서 보조적으로 사용합니다.
-
-[작성 규칙]
-- 소재명, 가공법명, 브랜드명은 절대 쓰지 않습니다. 알루미늄, 스테인리스, 유리, PC, PMMA, 아노다이징, PVD 같은 단어를 쓰면 안 됩니다.
-- 표준 물성 용어는 영어/한글이 모두 읽히도록 구성하되, 결과 JSON에서는 "titleEn"에 표준 영문 물성명, "titleKo"에 자연스러운 한글 물성명을 적습니다.
-- "titleEn"은 한 단어로 제한하지 않습니다. 실제 의미 전달이 더 정확하다면 2~4단어의 표준적 표현을 사용합니다. 예: Response Speed, Edge Softness, Layered Optical Depth, Restorative Elasticity, Surface Damping.
-- "axis"는 물성 축을 부르는 2~5자의 짧은 이름입니다.
-- "description"은 정확히 2문장입니다. 첫 문장은 어떤 물성인지, 둘째 문장은 그 물성이 앞의 지각을 어떻게 만들어내는지 적습니다.
-- "check"는 관찰하거나 간단히 비교해서 확인하는 방법을 한 문장으로 적습니다. 도구가 없어도 손과 눈으로 확인할 수 있는 방법을 우선합니다.
-- "value"는 LOW에서 HIGH까지의 축 위에서 이 물성이 놓일 위치를 0에서 100 사이의 정수로 적은 값입니다. 0은 완전한 LOW, 100은 완전한 HIGH이며, 50 부근에 몰리지 않게 항목마다 분명히 다른 값을 씁니다.
-- "level"은 value에 맞춘 요약 표기이며 "낮음", "중간", "높음" 중 하나만 씁니다.
+[전문 표현 규칙]
+- "titleKo"는 전문적인 한글 물성명으로 적습니다. 예: 층위형 광학 심도, 경계부 연화성, 잔향형 운동 회복, 방향성 반사 제어, 접촉 온화감.
+- "titleEn"은 대응되는 전문 영문명으로 적습니다. 한 단어가 아니라 2~4단어 표현을 적극 사용합니다.
+- "axis"는 물성 축을 짧게 묶는 분류어입니다. 예: 광학, 표면, 반응, 구조, 시간, 촉각, 밀도.
+- "description"은 정확히 2문장입니다. 첫 문장은 이 물성이 무엇인지 전문적으로 설명하고, 둘째 문장은 이 물성이 앞 단계의 지각 경험을 어떻게 성립시키는지 적습니다.
+- "check"는 눈과 손으로 비교 관찰할 수 있는 확인 방법을 한 문장으로 적습니다.
+- "value"는 LOW~HIGH 축의 위치를 0~100 정수로 적습니다. 항목별 차이가 드러나게 값을 분산합니다.
+- "level"은 "낮음", "중간", "높음" 중 하나만 사용합니다.
+- "visual"은 이 물성을 대표하는 단일 이미지 연출 지시를 영어 한 문장으로 적습니다. 예: editorial macro photograph of a softly diffused translucent layered surface with gentle edge glow and shallow depth of field.
+- 각 "visual"은 나중에 물성별 이미지 보드에 사용되므로, 제품이 아니라 표면·빛·층·질감·탄성·흐름·경계 같은 특성이 잘 드러나는 전문적이고 잡지 같은 이미지를 상상할 수 있게 써야 합니다.
+- 소재명, 브랜드명, 특정 제품명은 쓰지 않습니다.
 
 ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
 [FORMAT] 정확히 이 JSON만 반환하세요:
-{"properties":[{"axis":"반응","titleKo":"초기 반응 속도","titleEn":"Initial Response Speed","description":"2문장","check":"","value":78,"level":"높음"}]}`,
+{"properties":[{"axis":"광학","titleKo":"층위형 광학 심도","titleEn":"Layered Optical Depth","description":"2문장","check":"","value":78,"level":"높음","visual":"editorial macro photograph of a translucent layered surface showing luminous depth and soft internal glow"}]}`,
 
         MATERIAL: (concept, properties, instruction) => `선택된 감성 해석: ${concept.nameKo} (${concept.nameEn})
 감성 정의: ${concept.definition}
@@ -394,45 +391,47 @@ ${properties.map((p, i) => `${i + 1}. [${p.axis}] ${p.titleKo} (${p.titleEn}) ·
 [가장 중요한 원칙 — 감성 정합성]
 - 모든 CMF 안은 선택된 감성 해석의 정서와 장면을 강하게 이어받아야 합니다.
 - 다소 오버하더라도 감성 해석과 잘 맞는 방향을 우선합니다. 무난하지만 감성이 약한 제안보다, 감성 해석의 에너지·온도·리듬·여운을 분명히 느끼게 하는 제안을 선호합니다.
-- 각 CMF 안은 단순히 물성을 충족하는 수준을 넘어, 사용자가 그 소재를 보거나 만졌을 때 선택된 감성 해석의 분위기와 경험이 떠오르도록 설계합니다.
-- 예를 들어 도약감, 새벽감, 생동감, 포근한 여운, 긴장 직전의 탄력 같은 감성은 각 제안의 명칭, 색 방향, 표면 반응, 엣지 성격, 깊이감, 촉감, 미세 패턴까지 일관되게 반영합니다.
-- 8개의 안은 모두 같은 감성 패밀리에 속해야 하지만, 서로 다른 강조점(에너지/공간/촉감/여운/투명감/밀도감 등)을 갖는 변주여야 합니다.
+- 8개의 안은 모두 같은 감성 패밀리에 속해야 하지만, 서로 다른 강조점(에너지/공간/촉감/여운/투명감/밀도감/표면 긴장감)을 갖는 변주여야 합니다.
+
+[언어 톤]
+- 결과 문장은 전문적인 CMF / Color-Material Trend Proposal 문체로 작성합니다.
+- 지나치게 기술 보고서처럼 딱딱하지 않게, 소재 트렌드 제안서나 디자인 매거진의 material direction처럼 간결하고 감각적으로 씁니다.
+- 다만 추상적 수사만 나열하지 말고, 실제 소재/공정/마감의 차이가 분명히 드러나게 합니다.
 
 [핵심 목표]
-이 단계의 목적은 멋있는 제품 형태를 제안하는 것이 아니라, 실제 제조 가능한 소재·공정·마감 조합을 전문적인 CMF 제안으로 정리하는 것입니다.
-각 안은 제품 컨셉이 아니라 소재 샘플 보드로 이어질 수 있어야 하며, 형태보다 material / process / finish의 차이가 중심이 되어야 합니다.
+- 제품 형태를 제안하는 것이 아니라, 실제 제조 가능한 소재·공정·마감 조합을 전문적인 CMF 제안으로 정리합니다.
+- 각 안은 제품 컨셉이 아니라 소재 샘플 보드로 이어질 수 있어야 하며, 형태보다 material / process / finish의 차이가 중심이 되어야 합니다.
 
 [작성 규칙]
 - 물성 특성에 맞추어 총 8개의 CMF 안을 구성합니다. 단일 소재와 복합 소재를 함께 포함하고, 가능하면 Metal 2개 / Glass·Ceramic·Transparent 2개 / Polymer 2개 / Coating·Film·Textile·Composite 2개 정도로 균형 있게 분산하되 선택된 물성과 감성에 맞게 조정합니다.
 - 각 안은 선택된 감성 해석의 특정 측면과 분명히 연결되어야 합니다. 예: 빠른 반응, 가벼운 전진감, 부드러운 회복, 투명한 확산, 잔향처럼 남는 온기.
-- 서로 다른 안은 소재군, 표면 성격, 광택도, 질감, 깊이감, 투명·불투명성, 미세 패턴, 엣지 처리 방식이 명확히 구분되어야 합니다. 같은 어두운 계열이라도 모두 비슷한 검은 물체처럼 보이면 안 됩니다.
+- 서로 다른 안은 소재군, 표면 성격, 광택도, 질감, 깊이감, 투명·불투명성, 미세 패턴, 엣지 처리 방식이 명확히 구분되어야 합니다.
+- 같은 계열 색조라도 서로 다른 질감과 광학 특성 덕분에 확실히 다른 CMF 안으로 읽혀야 합니다.
 - 각 안은 실제 양산 또는 시제품 수준에서 충분히 납득 가능한 산업 소재와 공정만 사용합니다.
-- "nameKo"와 "nameEn"은 감성 해석과 연결되는 샘플명으로 작성합니다. 지나치게 시적인 문구만 쓰지 말고, 감정과 물질성이 함께 읽히게 합니다.
+- "nameKo"와 "nameEn"은 감성과 물질성이 함께 읽히는 트렌드 제안형 이름으로 작성합니다.
 - "type"은 "단일 소재" 또는 "복합 소재" 중 하나만 씁니다.
 - "composition"은 구성입니다. 무엇으로 이루어졌는지, 복합 소재라면 어떤 층이 어떤 순서로 결합되는지 1~2문장으로 적습니다.
-- "character"는 특징입니다. 보았을 때와 손에 쥐었을 때 어떤 인상과 촉감을 주는지 2문장으로 적고, 감성 해석과의 연결이 드러나야 합니다.
-- "howTo"는 물성 구현 방식입니다. 어떤 가공과 마감으로 앞의 물성을 만들어내는지 2문장으로 적습니다.
-- "limit"은 한계입니다. 비용, 내구성, 성형성, 무게, 양산성, 환경 부담 중 실제로 문제가 되는 점을 1~2문장으로 솔직하게 적습니다.
-- 전문 용어는 쓰되 처음 보는 사람도 이해하도록 괄호로 짧게 풀어 줍니다.
-- "base"는 소재의 규격명입니다. 실제 현장에서 쓰는 표기로 적고 괄호에 한글을 답니다. 예: Stainless Steel 304 (스테인리스강 304), Aluminum 6061 (알루미늄 6061), Low-Iron Glass (저철분 고투명 유리), PC (폴리카보네이트). 복합 소재라면 주된 기재를 앞에 두고 결합되는 층을 더해 적습니다.
-- "process"는 가공기법입니다. 실제 공정명을 순서대로 이어 붙여 구체적으로 적습니다. 예: Anodizing + Color Sealing, Hairline + PVD (Titanium Black), Tempering + Satin Etching, Injection + In-mold Texture, Vacuum Metallization + Hard Coating. "가공"이나 "표면 처리" 같은 뭉뚱그린 표현은 쓰지 않습니다.
-- "finish"는 마감 표기입니다. 결과 표면과 질감을 슬래시로 이어 적습니다. 예: Hairline / Metallic, Anodized / Matte Metallic, Frosted / Translucent.
-- "effect"는 그 가공이 만들어 내는 지각 효과를 한 문장으로 적은 한국어 문장입니다. 선택된 감성 해석의 경험이 어떻게 드러나는지도 포함합니다.
-- "colorNote"는 색 방향을 한 문장으로 적습니다. 선택된 감성 해석의 분위기와 장면을 떠올릴 수 있게 구체적으로 적습니다.
-- "label"은 이미지에 넣을 짧은 영문 소재명입니다. 2~3단어, Title Case로 적습니다.
+- "character"는 특징입니다. 보았을 때와 손에 쥐었을 때의 인상을 2문장으로 적고, 감성 해석과의 연결이 드러나야 합니다.
+- "howTo"는 물성 구현 방식입니다. 어떤 가공과 마감으로 앞의 물성을 구현하는지 2문장으로 적습니다.
+- "limit"은 한계입니다. 비용, 내구성, 성형성, 무게, 양산성, 환경 부담 중 실제로 문제가 되는 점을 1~2문장으로 적습니다.
+- "base"는 실제 현장에서 쓰는 소재 규격명으로 씁니다.
+- "process"는 공정을 순서대로 구체적으로 적습니다.
+- "finish"는 결과 표면과 질감을 슬래시로 연결해 적습니다.
+- "effect"는 선택된 감성 해석의 경험이 어떻게 드러나는지 포함한 한국어 한 문장입니다.
+- "colorNote"는 색 방향입니다. 장면과 분위기가 떠오르게 구체적으로 적습니다.
+- "label"은 이미지에 넣을 짧은 영문 이름입니다. 2~3단어, Title Case로 적습니다.
 
 [샘플 보드용 시각화 규칙]
-- "form"은 이 소재를 가장 잘 보여 줄 샘플의 형상입니다. 반드시 제품처럼 보이지 않는 중립적 sample coupon 형태로 적습니다.
-- 사용할 수 있는 형상은 material coupon, sample chip, sample tile, slim panel, layered coupon, gently curved strip, folded sheet, flat puck 정도입니다.
-- 장신구, 기기, 손잡이, 조형 오브젝트, 미래 제품처럼 보이는 형태는 금지합니다.
-- "visual"은 이 소재의 실물 샘플을 촬영하기 위한 영어 묘사입니다. 전체 샘플 뷰와 같은 샘플의 표면 확대 뷰를 함께 떠올릴 수 있도록 적습니다.
-- "visual"에는 색, 표면 결, 광택 수준, 반사 방식, 질감 스케일, 두께감, 단면 또는 엣지 처리, 층 구조, 코팅층 또는 섬유 조직 등 핵심 물성이 분명히 드러나야 합니다.
-- 전체 샘플 뷰는 단순하고 절제된 샘플 칩처럼 보여야 하며, 표면 확대 뷰는 같은 소재의 질감과 광학적 반응을 명확히 보여줘야 합니다.
-- 샘플 보드는 산업디자이너가 검토하는 전문 CMF material sample board처럼 보여야 하며, 제품 컨셉 보드처럼 보이면 안 됩니다.
+- "form"은 이 소재를 가장 잘 보여 줄 샘플 형상입니다. 제품처럼 보이지 않는 중립적 sample coupon 형태만 사용합니다.
+- "visual"은 이 CMF 안을 소개하는 단일 샘플 이미지의 영어 연출 지시입니다.
+- 각 "visual"은 부분 확대나 사선 크롭, 층 단면, 모서리 확대, 표면 결의 흐름, 광학 반사, 코팅층의 깊이처럼 핵심 물성이 잘 드러나는 한 장의 editorial image를 지시해야 합니다.
+- 두 장짜리 before/after 또는 전체 샘플 + 확대 샘플 구조를 쓰지 않습니다. CMF 안마다 오직 한 장의 강한 이미지로 표현합니다.
+- 이미지는 전문 소재 트렌드 북이나 디자인 매거진의 material feature 페이지처럼 보여야 합니다.
+- 제품, 가구, 장신구, 기기처럼 읽히는 조형 이미지는 피하고, 소재 샘플 또는 샘플의 부분 확대처럼 보여야 합니다.
 
 ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
 [FORMAT] 정확히 이 JSON만 반환하세요:
-{"materials":[{"nameKo":"","nameEn":"","type":"단일 소재","base":"Aluminum 6061 (알루미늄 6061)","process":"Anodizing + Color Sealing","finish":"Anodized / Matte Metallic","effect":"","composition":"","character":"","howTo":"","limit":"","colorNote":"","visual":"english sample description describing a neutral material coupon and its macro surface detail","label":"Sample Name","form":"a rounded rectangular sample chip with a chamfered edge"}]}`
+{"materials":[{"nameKo":"","nameEn":"","type":"단일 소재","base":"Aluminum 6061 (알루미늄 6061)","process":"Anodizing + Color Sealing","finish":"Anodized / Matte Metallic","effect":"","composition":"","character":"","howTo":"","limit":"","colorNote":"","visual":"editorial magazine-style close crop of a neutral material sample showing one strong view of the surface, edge, depth and finish","label":"Sample Name","form":"a rounded rectangular sample chip with a chamfered edge"}]}`
       };
 
       /* =========================================================
@@ -474,6 +473,14 @@ ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
         const en = item.titleEn || item.label || "";
         return state.labelLang === "ko" && ko
           ? `"${pad2(i + 1)}" in bold followed by "${ko}  ${en}" on the SAME line`
+          : `"${pad2(i + 1)}" in bold followed by "${en}"`;
+      }
+
+      function propertyLabelLine(item, i) {
+        const ko = item.titleKo || item.labelKo || "";
+        const en = item.titleEn || item.label || "";
+        return state.labelLang === "ko" && ko
+          ? `"${pad2(i + 1)}" in bold followed by "${ko}" and a smaller second line "${en}"`
           : `"${pad2(i + 1)}" in bold followed by "${en}"`;
       }
 
@@ -527,30 +534,49 @@ ${cells}
 Styles used across the cells: ${styleNote(items)}.
 ${IMG_LABEL_RULE}`;
         },
+        property(items) {
+          const cards = items.map((p, i) => `Card ${i + 1}:
+  Header text on white: ${propertyLabelLine(p, i)}.
+  Optional small axis badge or micro-label: "${p.axis}".
+  One short descriptive line may appear in small type below the title: "${String(p.description || '').split('. ')[0].replace(/"/g, '')}".
+  Image direction: ${p.visual || p.description}`).join("\n");
+          return `${IMG_BASE}
+Create ONE single vertical 2:3 integrated image file that presents all ${items.length} material-property cards on a clean premium editorial board.
+Layout: use a compact multi-row two-column grid of bordered white cards with thin light-grey lines and generous outer margins. Fit all cards cleanly on one board; continue rows until all cards are included.
+Each card must contain a refined text header and ONE image only. The image should feel like a professional material-properties visual from a premium design magazine or CMF trend report.
+The image in each card must communicate the property through one strong, elegant visual: a cropped sample edge, layered translucent section, controlled specular highlight, soft matte surface, compressed elastic form, diffused light field, directional texture, rippling motion trace, boundary softness, or another materially credible phenomenon.
+Do not use product shots, device mockups, icons, or multiple insets inside one card. One property, one image, one card.
+Make the cards varied and professional rather than repetitive. If several properties are optical, vary them through translucency, diffusion, clarity, edge glow, reflection direction, internal depth, or softness of boundary.
+Keep the board visually coherent and typography legible. The result should resemble a curated magazine spread titled Material Properties, not a generic infographic.
+${cards}
+Render only the specified card texts and no extra paragraphs.`;
+        },
         material(items) {
-          const rows = items.map((m, i) => {
+          const cards = items.map((m, i) => {
             const first = state.labelLang === "ko" && m.nameKo
               ? `"${pad2(i + 1)}" in bold followed by "${m.nameKo}"`
               : `"${pad2(i + 1)}" in bold followed by "${m.label}"`;
-            const lines = [first, `"${m.nameEn || m.label}"`];
-            if (m.base) lines.push(`"${String(m.base).replace(/\s*\([^)]*\)\s*/g, "").trim()}"`);
-            if (m.process) lines.push(`"${m.process}"`);
-            if (m.finish) lines.push(`"${m.finish}"`);
-            return `Row ${i + 1}:
-  Left third — a white caption block, left aligned, containing exactly these lines in this order, one per line: ${lines.join(" / ")}. The first line is the largest; the lines under it are one step smaller but still clearly readable.
-  Middle image — show one full neutral material sample coupon of the same material, shaped as ${m.form || "a rounded rectangular sample chip with a chamfered edge"}. It must read as a professional CMF sample, not as a product, jewelry piece, sculptural object, or futuristic device. Use a simple three-quarter or front-isometric studio view so thickness, edge condition and overall material character are easy to inspect.
-  Right image — an extreme macro close-up of that exact same sample, focusing on the most meaningful surface or edge detail for this material: texture, grain direction, gloss level, coating layer, fibre weave, translucency, ceramic depth, micro-etching, brushing marks, bead-blast texture, or a layered section if relevant.
-  Material appearance and material behavior to show: ${m.visual}`;
+            const second = `"${m.nameEn || m.label}"`;
+            const shortSpec = [m.base, m.finish].filter(Boolean).join(" · ");
+            const shortSpecClean = String(shortSpec).replace(/\s*\([^)]*\)\s*/g, ' ').replace(/\s+/g, ' ').trim();
+            return `CMF card ${i + 1}:
+  Text block on white, minimal and editorial. First line: ${first}. Second line: ${second}.
+  If there is room, add a small third line: "${shortSpecClean}".
+  Image: ONE single image only, not a split view and not multiple samples. Show a premium magazine-style material feature image of the same CMF direction.
+  The image should present the sample as a refined close crop, angled slab, cropped panel corner, layered edge, folded sheet detail, curved strip section, translucent thickness, weave close-up or coated surface detail — whichever best communicates this CMF.
+  Material appearance and editorial visual character to show: ${m.visual}`;
           }).join("\n");
-          return `Photorealistic CMF material sample board. This is not a product concept board.
-Show a professional industrial-design material board on a clean white or very light grey studio background, in one single vertical 2:3 portrait image, divided into ${items.length} horizontal rows by thin light-grey hairlines.
-Each row must communicate a real manufacturable material / process / finish combination through two visuals only: one full sample coupon and one macro detail of the same sample.
-The subject is always the material sample itself. Emphasise authentic material response to light: correct roughness, gloss, diffuse reflection, specular reflection, anisotropy, translucency, edge highlights, thickness, layering and tactile surface character where appropriate.
-Avoid dramatic product styling, hero-object sculpture, decorative props, futuristic gadgets, and abstract art treatment. The images must look like a CMF sample board used by industrial designers and material researchers.
-If multiple rows share a dark or neutral colour family, differentiate them clearly through surface character, gloss level, texture scale, reflectivity, edge treatment, depth, pattern, and material structure. They must not collapse into visually similar black objects.
-Keep lighting, camera distance family, shadow softness and background tone consistent across the board, while letting the individual materials remain clearly distinct.
-${rows}
-Label typography: set every caption block in a neutral sans-serif on white, the leading number in bold and the rest in regular weight. The first line of each block must be at least 44 pixels tall in this 1024 x 1536 image, and the specification lines under it at least 32 pixels tall. Never go smaller; give the caption block more width instead. Render only the caption text listed above and no other lettering anywhere in the image.`;
+          return `${IMG_BASE}
+Create ONE single vertical 2:3 integrated CMF sample board containing exactly ${items.length} CMF proposal cards on a clean white or very light grey editorial background.
+Layout: arrange the cards as a balanced 2-column grid across multiple rows. Each card contains a compact white text area and one large image area. One CMF proposal equals one card and one image.
+This board should feel like a premium color-material trend proposal or a design magazine feature on material directions.
+Do not use a two-image structure such as full sample plus macro detail. Do not create collages inside a card. Every card must rely on one strong editorial image only.
+The subject is always the material sample or a materially credible partial crop of the sample itself. Avoid product design, jewelry, gadgets, furniture, or decorative props.
+Make the eight cards diverse in crop, camera distance, surface emphasis and optical behaviour so the board feels curated and sophisticated. Some cards can show a precise corner crop, some a layered translucent edge, some a softly curved strip, some a macro texture field, some a satin reflective plane, some a coated depth effect.
+If multiple cards share a similar colour family, differentiate them clearly through gloss level, tactile grain, reflectivity, layering, texture scale, translucency, edge condition and pattern structure.
+Keep typography crisp and restrained, imagery premium, and the overall result suitable for publication in a CMF trend book.
+${cards}
+Render only the specified card texts and no extra paragraphs.`;
         }
       };
 
@@ -695,7 +721,7 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
           properties: [],
           propertyIds: [],
           materials: [],
-          images: { emotion: null, perception: null, material: null },
+          images: { emotion: null, perception: null, property: null, material: null },
           createdAt: Date.now()
         };
       }
@@ -998,7 +1024,10 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
           description: str(p.description) || NO_DATA,
           check: str(p.check),
           value: clampValue(p.value, p.level),
-          level: levels.includes(str(p.level)) ? str(p.level) : levelFromValue(clampValue(p.value, p.level))
+          level: levels.includes(str(p.level)) ? str(p.level) : levelFromValue(clampValue(p.value, p.level)),
+          visual: str(p.visual) || "a professional editorial close-up that clearly expresses this property through surface, light, depth, texture, motion trace or tactile cue",
+          label: str(p.label) || str(p.titleEn) || `Property ${i + 1}`,
+          labelKo: str(p.labelKo) || str(p.titleKo)
         }));
       }
 
@@ -1373,6 +1402,7 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
 
           if (state.properties.length) {
             out.push(PDF.heading("03", "물성 정의", "Material Properties"));
+            out.push(PDF.image("property", "물성 통합 이미지"));
             state.properties.forEach((x, i) => {
               const on = state.propertyIds.includes(x.id);
               out.push(PDF.card(`
@@ -1525,7 +1555,7 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
             propertyIds: arr(d.propertyIds),
             materials: arr(d.materials),
             createdAt: d.createdAt || row.savedAt,
-            images: { emotion: null, perception: null, material: null }
+            images: { emotion: null, perception: null, property: null, material: null }
           });
           drafts["keyword-input"] = state.keyword;
           drafts["note-input"] = state.note;
@@ -1608,7 +1638,7 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
             perceptions: [], perceptionIds: [],
             properties: [], propertyIds: [],
             materials: [],
-            images: { emotion: null, perception: null, material: null },
+            images: { emotion: null, perception: null, property: null, material: null },
             step: 2
           }, true);
           persist(false);
@@ -1646,7 +1676,7 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
             perceptionIds: [],
             properties: [], propertyIds: [],
             materials: [],
-            images: Object.assign({}, state.images, { perception: null, material: null }),
+            images: Object.assign({}, state.images, { perception: null, property: null, material: null }),
             step: 3
           }, true);
           persist(false);
@@ -1692,15 +1722,24 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
             properties,
             propertyIds: [],
             materials: [],
-            images: Object.assign({}, state.images, { material: null }),
+            images: Object.assign({}, state.images, { property: null, material: null }),
             step: 4
           }, true);
           persist(false);
+          await Actions.generatePropertyImage();
         },
         async regenerateProperties() {
           const ins = draft("ins-property").trim();
           drafts["ins-property"] = "";
           await Actions.generateProperties(ins);
+        },
+        async generatePropertyImage() {
+          if (!state.properties.length) return;
+          const url = await withLoading("물성 통합 이미지를 만들고 있습니다", () =>
+            callImage(IMG.property(state.properties)));
+          if (!url) return;
+          await Actions.saveImage("property", url);
+          render();
         },
 
         /* ---- 4단계 → 소재 제안 ---- */
@@ -2004,6 +2043,14 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
             ]);
           })()}
 
+          ${imageCard("property", {
+            title: "물성 통합 이미지",
+            alt: "물성별 대표 표면·광학·촉감 이미지 통합 보드",
+            caption: "각 물성을 대표하는 전문 이미지들을 한 장의 에디토리얼 보드로 묶었습니다.",
+            empty: "물성 통합 이미지를 아직 만들지 않았습니다.",
+            onGenerate: "Actions.generatePropertyImage()"
+          })}
+
           <div class="flex items-center justify-between gap-2 mb-3 px-1">
             <span class="t-meta font-bold text-slate-600">${picked}개 선택됨</span>
             ${ghostBtn(allOn ? "전체 해제" : "전체 선택", "Actions.selectAllProperties()", allOn ? "square" : "check-square")}
@@ -2076,8 +2123,8 @@ Label typography: set every caption block in a neutral sans-serif on white, the 
 
           ${imageCard("material", {
             title: "CMF 샘플 보드",
-            alt: "소재별 전체 샘플과 표면 확대 이미지",
-            caption: "소재마다 전체 샘플과 표면 확대를 나란히 배치한 통합 이미지 보드입니다.",
+            alt: "CMF별 단일 에디토리얼 샘플 이미지 보드",
+            caption: "각 CMF 안을 한 장의 강한 샘플 이미지로 소개하는 통합 보드입니다.",
             empty: "CMF 샘플 보드를 아직 만들지 않았습니다.",
             onGenerate: "Actions.generateMaterialImage()"
           })}
