@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>감성 · 지각 · 물성 · 소재 랩</title>
+  <title>감성 · 지각 · 물성 · 소재 랩 v11.1</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -651,7 +651,7 @@ Render only the specified card texts and no extra paragraphs.`;
         }
       };
 
-      const IMAGE_SLOTS = ["emotion", "perception", "material"];
+      const IMAGE_SLOTS = ["emotion", "perception", "property", "material"];
       let imageDbPromise = null;
 
       const ImageDB = {
@@ -698,6 +698,20 @@ Render only the specified card texts and no extra paragraphs.`;
           const out = {};
           for (const slot of IMAGE_SLOTS) out[slot] = await ImageDB.get(projectId, slot);
           return out;
+        },
+        async remove(projectId, slot) {
+          if (!IMAGE_SLOTS.includes(slot)) return false;
+          try {
+            await ImageDB._act("readwrite", st => st.delete(ImageDB.key(projectId, slot)));
+            return true;
+          } catch (e) {
+            console.warn("이미지 삭제 실패", slot, e);
+            return false;
+          }
+        },
+        async removeSlots(projectId, slots) {
+          const targets = Array.from(new Set(arr(slots).filter(slot => IMAGE_SLOTS.includes(slot))));
+          await Promise.all(targets.map(slot => ImageDB.remove(projectId, slot)));
         },
         removeProject(projectId) {
           IMAGE_SLOTS.forEach(slot => {
@@ -1070,6 +1084,16 @@ Render only the specified card texts and no extra paragraphs.`;
       /* =========================================================
          11. 자동 저장
          ========================================================= */
+      /* 홈(step 0)은 탐색 화면일 뿐 프로젝트 진행 단계가 아닙니다.
+         저장 시 화면 위치가 아니라 실제 생성된 데이터의 가장 깊은 단계를 기록합니다. */
+      function progressStep() {
+        if (state.materials.length) return 5;
+        if (state.properties.length) return 4;
+        if (state.perceptions.length) return 3;
+        if (state.concepts.length) return 2;
+        return 1;
+      }
+
       function snapshot() {
         return {
           projectId: state.projectId,
@@ -1083,7 +1107,7 @@ Render only the specified card texts and no extra paragraphs.`;
           propertyIds: state.propertyIds,
           materials: state.materials,
           createdAt: state.createdAt,
-          step: Math.max(1, state.step)
+          step: progressStep()
         };
       }
 
@@ -1559,9 +1583,20 @@ Render only the specified card texts and no extra paragraphs.`;
           });
           drafts["keyword-input"] = state.keyword;
           drafts["note-input"] = state.note;
-          setState({ step: Math.min(Math.max(1, d.step || 1), 5) }, true);
+
+          /* 구버전에서 step이 1로 잘못 저장된 프로젝트도 데이터 기준으로 정상 복구합니다. */
+          setState({ step: progressStep() }, true);
+
           const imgs = await ImageDB.loadAll(state.projectId);
-          setState({ images: imgs });
+          /* 구버전이 남긴 고아 이미지도 정리합니다. 데이터가 없는 단계의 이미지는 복원하지 않습니다. */
+          const orphanSlots = [];
+          if (!state.concepts.length && imgs.emotion) orphanSlots.push("emotion");
+          if (!state.perceptions.length && imgs.perception) orphanSlots.push("perception");
+          if (!state.properties.length && imgs.property) orphanSlots.push("property");
+          if (!state.materials.length && imgs.material) orphanSlots.push("material");
+          orphanSlots.forEach(slot => { imgs[slot] = null; });
+          if (orphanSlots.length) await ImageDB.removeSlots(state.projectId, orphanSlots);
+          setState({ images: Object.assign({ emotion: null, perception: null, property: null, material: null }, imgs) });
         },
 
         deleteProject(id) {
@@ -1573,7 +1608,12 @@ Render only the specified card texts and no extra paragraphs.`;
           render();
         },
 
-        goHome() { persist(false); setState({ step: 0 }, true); },
+        goHome() {
+          /* 현재 분석 진행도를 먼저 저장하고 홈으로 이동합니다.
+             이후 홈에서 자동 저장이 실행돼도 snapshot()이 progressStep()을 사용하므로 진행 단계가 1로 되돌아가지 않습니다. */
+          persist(false);
+          setState({ step: 0 }, true);
+        },
         saveNow() { const r = persist(true); if (r === "empty") toast("아직 저장할 내용이 없습니다."); },
 
         copyReport() {
@@ -1616,6 +1656,14 @@ Render only the specified card texts and no extra paragraphs.`;
           state.images = Object.assign({}, state.images, { [slot]: dataUrl });
           await ImageDB.put(state.projectId, slot, dataUrl);
         },
+        async clearImageSlots(slots) {
+          const targets = Array.from(new Set(arr(slots).filter(slot => IMAGE_SLOTS.includes(slot))));
+          if (!targets.length) return;
+          const nextImages = Object.assign({}, state.images);
+          targets.forEach(slot => { nextImages[slot] = null; });
+          state.images = nextImages;
+          await ImageDB.removeSlots(state.projectId, targets);
+        },
 
         /* ---- 1단계 → 감성 해석 ---- */
         async generateConcepts(instruction) {
@@ -1632,6 +1680,7 @@ Render only the specified card texts and no extra paragraphs.`;
           const concepts = normConcepts(data);
           if (!concepts.length) { setState({ errorMsg: "감성 해석을 받지 못했습니다. 다시 시도해 주세요." }); return; }
 
+          await Actions.clearImageSlots(["emotion", "perception", "property", "material"]);
           setState({
             concepts,
             conceptId: null,
@@ -1659,7 +1708,23 @@ Render only the specified card texts and no extra paragraphs.`;
         },
 
         /* ---- 2단계 → 지각 특성 ---- */
-        selectConcept(id) { setState({ conceptId: state.conceptId === id ? null : id }); },
+        async selectConcept(id) {
+          const nextId = state.conceptId === id ? null : id;
+          const changed = nextId !== state.conceptId;
+          if (changed && (state.perceptions.length || state.properties.length || state.materials.length)) {
+            await Actions.clearImageSlots(["perception", "property", "material"]);
+            setState({
+              conceptId: nextId,
+              perceptions: [], perceptionIds: [],
+              properties: [], propertyIds: [],
+              materials: [],
+              images: Object.assign({}, state.images, { perception: null, property: null, material: null })
+            });
+            persist(false);
+            return;
+          }
+          setState({ conceptId: nextId });
+        },
         async generatePerceptions(instruction) {
           const c = selectedConcept();
           if (!c) { setState({ errorMsg: "감성 해석을 먼저 선택해 주세요." }); return; }
@@ -1671,6 +1736,7 @@ Render only the specified card texts and no extra paragraphs.`;
           const perceptions = normPerceptions(data);
           if (!perceptions.length) { setState({ errorMsg: "지각 특성을 받지 못했습니다. 다시 시도해 주세요." }); return; }
 
+          await Actions.clearImageSlots(["perception", "property", "material"]);
           setState({
             perceptions,
             perceptionIds: [],
@@ -1697,13 +1763,37 @@ Render only the specified card texts and no extra paragraphs.`;
         },
 
         /* ---- 3단계 → 물성 정의 ---- */
-        togglePerception(id) {
+        async togglePerception(id) {
           const on = state.perceptionIds.includes(id);
-          setState({ perceptionIds: on ? state.perceptionIds.filter(x => x !== id) : state.perceptionIds.concat(id) });
+          const nextIds = on ? state.perceptionIds.filter(x => x !== id) : state.perceptionIds.concat(id);
+          if (state.properties.length || state.materials.length) {
+            await Actions.clearImageSlots(["property", "material"]);
+            setState({
+              perceptionIds: nextIds,
+              properties: [], propertyIds: [],
+              materials: [],
+              images: Object.assign({}, state.images, { property: null, material: null })
+            });
+            persist(false);
+            return;
+          }
+          setState({ perceptionIds: nextIds });
         },
-        selectAllPerceptions() {
+        async selectAllPerceptions() {
           const all = state.perceptions.length === state.perceptionIds.length;
-          setState({ perceptionIds: all ? [] : state.perceptions.map(p => p.id) });
+          const nextIds = all ? [] : state.perceptions.map(p => p.id);
+          if (state.properties.length || state.materials.length) {
+            await Actions.clearImageSlots(["property", "material"]);
+            setState({
+              perceptionIds: nextIds,
+              properties: [], propertyIds: [],
+              materials: [],
+              images: Object.assign({}, state.images, { property: null, material: null })
+            });
+            persist(false);
+            return;
+          }
+          setState({ perceptionIds: nextIds });
         },
         async generateProperties(instruction) {
           const c = selectedConcept();
@@ -1718,6 +1808,7 @@ Render only the specified card texts and no extra paragraphs.`;
           const properties = normProperties(data);
           if (!properties.length) { setState({ errorMsg: "물성 정의를 받지 못했습니다. 다시 시도해 주세요." }); return; }
 
+          await Actions.clearImageSlots(["property", "material"]);
           setState({
             properties,
             propertyIds: [],
@@ -1743,13 +1834,35 @@ Render only the specified card texts and no extra paragraphs.`;
         },
 
         /* ---- 4단계 → 소재 제안 ---- */
-        toggleProperty(id) {
+        async toggleProperty(id) {
           const on = state.propertyIds.includes(id);
-          setState({ propertyIds: on ? state.propertyIds.filter(x => x !== id) : state.propertyIds.concat(id) });
+          const nextIds = on ? state.propertyIds.filter(x => x !== id) : state.propertyIds.concat(id);
+          if (state.materials.length) {
+            await Actions.clearImageSlots(["material"]);
+            setState({
+              propertyIds: nextIds,
+              materials: [],
+              images: Object.assign({}, state.images, { material: null })
+            });
+            persist(false);
+            return;
+          }
+          setState({ propertyIds: nextIds });
         },
-        selectAllProperties() {
+        async selectAllProperties() {
           const all = state.properties.length === state.propertyIds.length;
-          setState({ propertyIds: all ? [] : state.properties.map(p => p.id) });
+          const nextIds = all ? [] : state.properties.map(p => p.id);
+          if (state.materials.length) {
+            await Actions.clearImageSlots(["material"]);
+            setState({
+              propertyIds: nextIds,
+              materials: [],
+              images: Object.assign({}, state.images, { material: null })
+            });
+            persist(false);
+            return;
+          }
+          setState({ propertyIds: nextIds });
         },
         async generateMaterials(instruction) {
           const c = selectedConcept();
@@ -1763,6 +1876,7 @@ Render only the specified card texts and no extra paragraphs.`;
           const materials = normMaterials(data);
           if (!materials.length) { setState({ errorMsg: "CMF 제안을 받지 못했습니다. 다시 시도해 주세요." }); return; }
 
+          await Actions.clearImageSlots(["material"]);
           setState({
             materials,
             images: Object.assign({}, state.images, { material: null }),
