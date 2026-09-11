@@ -536,18 +536,20 @@ ${IMG_LABEL_RULE}`;
         },
         property(items) {
           const cards = items.map((p, i) => `Card ${i + 1}:
-  Header text on white: ${propertyLabelLine(p, i)}.
-  Optional small axis badge or micro-label: "${p.axis}".
-  One short descriptive line may appear in small type below the title: "${String(p.description || '').split('. ')[0].replace(/"/g, '')}".
+  Large prominent numbering and title on white: ${propertyLabelLine(p, i)}.
+  Optional small axis badge only: "${p.axis}".
+  Do not add any descriptive sentence, explanatory paragraph, or body copy under the title.
   Image direction: ${p.visual || p.description}`).join("\n");
           return `${IMG_BASE}
 Create ONE single vertical 2:3 integrated image file that presents all ${items.length} material-property cards on a clean premium editorial board.
+Do NOT place any large board title such as "Material Properties" or any subtitle or introductory sentence at the top of the board.
 Layout: use a compact multi-row two-column grid of bordered white cards with thin light-grey lines and generous outer margins. Fit all cards cleanly on one board; continue rows until all cards are included.
-Each card must contain a refined text header and ONE image only. The image should feel like a professional material-properties visual from a premium design magazine or CMF trend report.
+Each card must contain a refined text header and ONE image only. The text header should be visually stronger than before: enlarge the card numbering and main property title so they read clearly at a glance, in a premium editorial style.
+If Korean labels are provided, show the Korean title as the main line and the English title as a smaller second line. Do not place any additional descriptive sentence below them.
 The image in each card must communicate the property through one strong, elegant visual: a cropped sample edge, layered translucent section, controlled specular highlight, soft matte surface, compressed elastic form, diffused light field, directional texture, rippling motion trace, boundary softness, or another materially credible phenomenon.
 Do not use product shots, device mockups, icons, or multiple insets inside one card. One property, one image, one card.
 Make the cards varied and professional rather than repetitive. If several properties are optical, vary them through translucency, diffusion, clarity, edge glow, reflection direction, internal depth, or softness of boundary.
-Keep the board visually coherent and typography legible. The result should resemble a curated magazine spread titled Material Properties, not a generic infographic.
+Keep the board visually coherent and typography legible. The result should resemble a curated premium CMF or materials magazine page, not a generic infographic.
 ${cards}
 Render only the specified card texts and no extra paragraphs.`;
         },
@@ -1218,6 +1220,12 @@ Render only the specified card texts and no extra paragraphs.`;
       function imageCard(slot, opts) {
         const url = state.images ? state.images[slot] : null;
         const caption = opts.caption || "";
+        const saveBtn = url
+          ? `<button type="button" onclick="Actions.downloadImage('${slot}')"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 t-meta font-bold hover:bg-slate-50 active:scale-[0.98] transition-all">
+               <i data-lucide="download" class="w-4 h-4"></i>저장
+             </button>`
+          : "";
         const inner = url
           ? `<button type="button" onclick="Actions.openLightbox('${slot}')" class="block w-full">
                <img src="${escAttr(url)}" alt="${escAttr(opts.alt || "생성된 통합 이미지")}" class="w-full rounded-2xl bg-slate-100" />
@@ -1227,8 +1235,9 @@ Render only the specified card texts and no extra paragraphs.`;
                <p class="t-small text-slate-600">${esc(opts.empty || "아직 이미지를 생성하지 않았습니다.")}</p>
              </div>`;
         return `<section class="bg-white rounded-[2rem] p-4 border-2 border-slate-200 shadow-md mb-6">
-          <div class="flex items-center justify-between gap-2 mb-3 px-1">
+          <div class="flex items-center justify-between gap-3 mb-3 px-1">
             <h3 class="t-label text-slate-500">${esc(opts.title)}</h3>
+            ${saveBtn}
           </div>
           ${inner}
           ${caption ? `<p class="t-meta text-slate-500 mt-3 px-1 prose-ko">${esc(caption)}</p>` : ""}
