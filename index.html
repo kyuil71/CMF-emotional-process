@@ -29,6 +29,11 @@
     }
     body * { font-size: inherit; }
     body .t-display { font-size: 34px; line-height: 1.2;  font-weight: 800; letter-spacing: -0.025em; }
+    /* 첫 화면 타이틀 — 한 줄 유지, 폭이 좁으면 글씨 크기를 줄입니다. (좌우 여백 56px 기준) */
+    body .t-title-fit {
+      font-size: min(30px, calc((min(100vw, 430px) - 56px) / 12.6));
+      line-height: 1.25; font-weight: 800; letter-spacing: -0.03em; white-space: nowrap;
+    }
     body .t-h1      { font-size: 26px; line-height: 1.35; font-weight: 800; letter-spacing: -0.015em; }
     body .t-h2      { font-size: 22px; line-height: 1.4;  font-weight: 800; letter-spacing: -0.01em; }
     body .t-h3      { font-size: 19px; line-height: 1.5;  font-weight: 700; }
@@ -2234,7 +2239,7 @@ ${others}`;
           <div class="w-24 h-24 bg-blue-700 rounded-full flex items-center justify-center mb-9 shadow-[0_10px_24px_rgba(29,78,216,.3)]">
             <i data-lucide="layers" class="text-white w-12 h-12"></i>
           </div>
-          <h1 class="t-display text-slate-900 mb-3">감성 · 지각 · 물성 · CMF</h1>
+          <h1 class="t-title-fit text-slate-900 mb-3">감성 · 지각 · 물성 · CMF</h1>
           <p class="t-small text-slate-600 font-bold mb-10">감성 키워드 한 줄에서 CMF 소재까지, 다섯 단계로 좁혀 갑니다</p>
           <div class="w-full space-y-4">
             <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" class="inline-block t-small text-blue-700 font-bold underline underline-offset-4">OpenAI API 키 발급받기</a>
