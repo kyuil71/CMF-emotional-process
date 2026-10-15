@@ -207,15 +207,29 @@
       /* =========================================================
          2. PROMPTS — 텍스트
          ========================================================= */
+      /* 한글 이름·제목 작성 규칙 — 어려운 한자어 조합 대신 쉽게 읽히는 말로 씁니다. */
+      const NAMING_RULE = `[한글 이름·제목 작성 규칙 — 모든 단계에 적용]
+- 콘셉트명, 지각 특성명, 물성명, CMF 안 이름 같은 한글 이름과 제목은 처음 보는 사람도 바로 뜻을 알 수 있는 쉬운 말로 짓습니다.
+- 한자어 명사를 여러 개 붙여 만든 압축형 이름을 쓰지 않습니다. 예: '심층 흑청 강재', '냉광 기념비 도자', '층위형 광학 심도', '경계부 연화성'.
+- 대신 일상적인 우리말과 디자이너가 흔히 쓰는 외래어(스틸, 세라믹, 글라스, 매트, 글로시, 블루 등)를 섞어 이미지가 떠오르게 풀어 씁니다.
+  좋은 예: 심층 흑청 강재 → 심해의 다크블루 스틸 / 냉광 기념비 도자 → 차가운 기념비 같은 세라믹 / 층위형 광학 심도 → 겹겹이 깊어지는 빛 / 경계부 연화성 → 부드럽게 풀리는 가장자리.
+- 설명 문장도 같은 원칙으로, 꼭 필요한 전문 용어가 아니면 어려운 한자어보다 쉬운 표현을 고릅니다.`;
+
       const SYSTEM = `당신은 감성 디자인, 지각심리학, 물성 공학, CMF(Color·Material·Finish)를 함께 다루는 시니어 CMF 디자이너입니다.
 - 모든 한국어 문장은 정중하고 명확한 존댓말로 작성합니다.
 - 감성 단계에서는 사람이 실제로 느끼는 정서와 몸·마음의 반응을 자연스럽고 구체적인 경험 언어로 표현합니다.
 - 지각·물성·소재 단계로 갈수록 관찰 가능하고 전문적인 언어로 구체화합니다.
-- 반드시 요청받은 JSON 객체 하나만 반환합니다. 설명, 머리말, 코드펜스를 붙이지 않습니다.`;
+- 반드시 요청받은 JSON 객체 하나만 반환합니다. 설명, 머리말, 코드펜스를 붙이지 않습니다.
+${NAMING_RULE}`;
 
       const PROMPTS = {
         EMOTION: (keyword, note, instruction) => `감성 키워드: "${keyword}"
-${note ? `사용자가 입력한 연관 과제: ${note}\n` : ""}
+${note ? `사용자가 입력한 연관 과제(참고용 맥락): ${note}
+[연관 과제 사용 규칙 — 반드시 지킴]
+- 연관 과제는 감성의 쓰임새와 분위기를 이해하기 위한 참고 정보일 뿐입니다.
+- 연관 과제에 나온 제품, 그 제품군, 그 제품의 부품·화면·사용 장면(예: 냉장고라면 냉장고, 가전, 주방 가전, 냉장고 내부)을 subject, visual, label, experience 어디에도 등장시키지 않습니다.
+- 감성 해석 이미지는 제품 이전의 순수한 감성 장면이어야 합니다. 감성은 자연, 공간, 빛, 물질 현상, 사람의 행동 등 연관 과제와 무관한 장면으로 표현합니다.
+` : ""}
 
 [고정 해석 방식]
 ${EMOTION_METHOD.label} (${EMOTION_METHOD.en})
@@ -240,7 +254,7 @@ ${EMOTION_METHOD.guide}
 - 단, 입력 감성의 성격상 특정 초점이 부자연스러우면 억지로 맞추지 말고 가장 가까운 경험 축으로 자연스럽게 조정합니다.
 
 [감성 정의 규칙]
-- 각 안에는 한글 콘셉트명과 2~3단어의 영문 콘셉트명을 붙입니다.
+- 각 안에는 쉬운 말로 된 한글 콘셉트명과 2~3단어의 영문 콘셉트명을 붙입니다. (한글 이름·제목 작성 규칙을 따릅니다)
 - "definition"은 3~4문장으로 씁니다. 유사어를 나열하지 말고 사람이 실제로 느끼는 정서 상태와 몸·마음의 변화를 자연스럽게 설명합니다.
 - 에너지 수준, 긴장과 이완, 안정감, 활동성, 시간적 느낌, 공간 분위기, 감정의 온도, 반응성, 여운 중 해당 감성에 중요한 요소를 포함합니다.
 - 지나치게 시적이거나 광고 카피 같은 문구, 브랜드·시장·트렌드 분석을 피합니다.
@@ -251,7 +265,7 @@ ${EMOTION_METHOD.guide}
 [대표 장면과 정서적 은유]
 - "subject"는 각 안의 감정을 가장 자연스럽게 전달하는 하나의 대표 장면, 대표 존재 또는 대표 상황입니다.
 - 소재는 감성을 가장 정확하게 체감시키는 대상에서 폭넓게 고릅니다: 자연물(돌·바위, 물·얼음·눈, 모래, 구름·안개, 바다·파도, 하늘과 빛, 나무껍질·이끼), 건축·공간, 인테리어, 자동차·모빌리티, 제품·오브젝트, 패브릭·종이, 사람의 행동(얼굴 제외), 빛과 그림자, 추상적 물질 현상.
-- 세 안은 반드시 서로 다른 소재 범주에서 고릅니다. 자연물 장면은 세 안 중 최대 2개이며, 최소 1개는 건축·인테리어·자동차·제품처럼 사람이 만든 대상이나 환경에서 고릅니다.
+- 세 안은 반드시 서로 다른 소재 범주에서 고릅니다. 자연물 장면은 세 안 중 최대 2개이며, 최소 1개는 건축·인테리어·오브젝트처럼 사람이 만든 대상이나 환경에서 고릅니다. 단, 연관 과제의 제품이나 같은 제품군은 고르지 않습니다.
 - 꽃 규칙: ${flowerRuleKo(keyword, note)}
 - 키워드를 문자 그대로 묘사하지 않습니다. 예를 들어 '향기로운'을 향수병이나 꽃으로 바로 표현하지 말고, 공기의 흐름·얇은 커튼의 흔들림·빛이 번지는 실내처럼 향기의 경험을 연상시키는 정서적 은유를 우선합니다.
 - 예쁘거나 화려하다는 이유로 감정과 관계가 약한 대상을 고르지 않습니다.
@@ -397,7 +411,7 @@ ${perceptions.map((p, i) => `${i + 1}. [${p.category}] ${p.titleKo} — ${p.desc
 - 전체 구성은 가능하면 Optical / Surface / Mechanical / Thermal-Tactile / Temporal-Dynamic / Structural 범주를 균형 있게 검토하되, 감성·지각과 관련 없는 범주는 억지로 넣지 않습니다.
 
 [전문 표현 규칙]
-- "titleKo"는 전문적인 한글 물성명으로 적습니다. 예: 층위형 광학 심도, 경계부 연화성, 잔향형 운동 회복, 방향성 반사 제어, 접촉 온화감.
+- "titleKo"는 뜻이 바로 읽히는 쉬운 한글 물성명으로 적습니다. 어려운 한자어 조합을 피합니다. 예: 겹겹이 깊어지는 빛, 부드럽게 풀리는 가장자리, 천천히 되돌아오는 탄성, 한쪽으로 흐르는 반사, 닿으면 포근한 촉감.
 - "titleEn"은 대응되는 전문 영문명으로 적습니다. 한 단어가 아니라 2~4단어 표현을 적극 사용합니다.
 - "axis"는 물성 축을 짧게 묶는 분류어입니다. 예: 광학, 표면, 반응, 구조, 시간, 촉각, 밀도.
 - "description"은 정확히 2문장입니다. 첫 문장은 이 물성이 무엇인지 전문적으로 설명하고, 둘째 문장은 이 물성이 앞 단계의 지각 경험을 어떻게 성립시키는지 적습니다.
@@ -410,7 +424,7 @@ ${perceptions.map((p, i) => `${i + 1}. [${p.category}] ${p.titleKo} — ${p.desc
 
 ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
 [FORMAT] 정확히 이 JSON만 반환하세요:
-{"properties":[{"axis":"광학","titleKo":"층위형 광학 심도","titleEn":"Layered Optical Depth","description":"2문장","check":"","value":78,"level":"높음","visual":"editorial macro photograph of a translucent layered surface showing luminous depth and soft internal glow"}]}`,
+{"properties":[{"axis":"광학","titleKo":"겹겹이 깊어지는 빛","titleEn":"Layered Optical Depth","description":"2문장","check":"","value":78,"level":"높음","visual":"editorial macro photograph of a translucent layered surface showing luminous depth and soft internal glow"}]}`,
 
         MATERIAL: (concept, properties, instruction) => `선택된 감성 해석: ${concept.nameKo} (${concept.nameEn})
 감성 정의: ${concept.definition}
@@ -444,6 +458,7 @@ ${properties.map((p, i) => `${i + 1}. [${p.axis}] ${p.titleKo} (${p.titleEn}) ·
 - 같은 계열 색조라도 서로 다른 질감과 광학 특성 덕분에 확실히 다른 CMF 안으로 읽혀야 합니다.
 - 각 안은 실제 양산 또는 시제품 수준에서 충분히 납득 가능한 산업 소재와 공정만 사용합니다.
 - "nameKo"와 "nameEn"은 감성과 물질성이 함께 읽히는 트렌드 제안형 이름으로 작성합니다.
+- "nameKo"는 어려운 한자어 조합 대신 쉬운 말과 익숙한 외래어로 풀어 씁니다. 예: 심해의 다크블루 스틸, 차가운 기념비 같은 세라믹, 새벽 안개 같은 반투명 글라스. 피할 예: 심층 흑청 강재, 냉광 기념비 도자.
 - "type"은 "단일 소재" 또는 "복합 소재" 중 하나만 씁니다.
 - "composition"은 구성입니다. 무엇으로 이루어졌는지, 복합 소재라면 어떤 층이 어떤 순서로 결합되는지 1~2문장으로 적습니다.
 - "character"는 특징입니다. 보았을 때와 손에 쥐었을 때의 인상을 2문장으로 적고, 감성 해석과의 연결이 드러나야 합니다.
@@ -550,6 +565,7 @@ Use equal-height panels, a narrow white outer margin, thin light-grey dividers, 
 ${panels}
 The three panels express different experiential readings of the same original emotion. Keep a recognisable emotional family across all three while clearly differentiating scene, experiential focus, composition and visual rhythm. Do not force radically different palettes just for variety; colour should follow each concept naturally.
 Do not combine architecture, animals, landscapes, products or abstract forms as disconnected symbols inside one panel. Every panel must feel like one naturally photographed or rendered moment.
+These are pure pre-product emotion images: do not show any consumer product, home appliance, electronic device or product interface as the subject of a panel; express the emotion through scenes, spaces, nature, materials, light or human action.
 The three panels must draw from different subject categories (for example a natural element, an architectural or interior space, a vehicle or designed product, a human action, a light phenomenon) rather than repeating one kind of subject.
 Flower rule: ${flowerRuleEn(state.keyword, state.note)}
 ${IMG_LABEL_RULE}`;
@@ -656,67 +672,137 @@ ${BOARD_TYPO}`;
          5. 저장소 — 프로젝트 텍스트는 localStorage, 이미지는 IndexedDB
          이미지는 base64라 용량이 커서 localStorage에 넣으면 곧 넘칩니다.
          ========================================================= */
-      const Store = {
-        list() {
-          try {
-            const raw = localStorage.getItem(CONFIG.PROJECTS_KEY);
-            const arr = raw ? JSON.parse(raw) : [];
-            return Array.isArray(arr) ? arr : [];
-          } catch (e) {
-            console.warn("저장 목록을 읽지 못했습니다.", e);
-            return [];
-          }
-        },
-        _write(list) {
-          try { localStorage.setItem(CONFIG.PROJECTS_KEY, JSON.stringify(list)); return true; }
-          catch (e) { return false; }
-        },
-        save(snapshot, meta) {
-          let list = Store.list().filter(p => p.id !== meta.id);
-          list.unshift({ id: meta.id, title: meta.title, savedAt: Date.now(), data: snapshot });
-          if (list.length > CONFIG.MAX_PROJECTS) {
-            list.slice(CONFIG.MAX_PROJECTS).forEach(p => ImageDB.removeProject(p.id));
-            list = list.slice(0, CONFIG.MAX_PROJECTS);
-          }
-          if (Store._write(list)) return { ok: true };
-          const reduced = list.slice(0, Math.max(1, list.length - 1));
-          if (Store._write(reduced)) return { ok: true, pruned: "oldest" };
-          return { ok: false };
-        },
-        remove(id) {
-          ImageDB.removeProject(id);
-          return Store._write(Store.list().filter(p => p.id !== id));
-        }
-      };
-
+      /* 프로젝트와 이미지를 모두 IndexedDB에 저장합니다.
+         - localStorage는 브라우저가 디스크 기록을 미루거나(쓰기량 제한) 다른 로컬 HTML 파일과 용량을 나눠 써서
+           앱을 강제 종료하거나 다시 열었을 때 마지막 수정이 빠지는 문제가 있었습니다.
+         - IndexedDB 쓰기는 트랜잭션이 디스크에 확정(complete)된 뒤에만 완료로 처리합니다. */
       const IMAGE_SLOTS = ["emotion", "perception", "property", "material"];
+      const PROJECT_STORE = "projects";
       let imageDbPromise = null;
 
-      const ImageDB = {
+      const IDB = {
         open() {
           if (!("indexedDB" in window)) return Promise.reject(new Error("IDB_UNAVAILABLE"));
           if (imageDbPromise) return imageDbPromise;
           imageDbPromise = new Promise((res, rej) => {
-            const req = indexedDB.open(CONFIG.IMAGE_DB.name, 1);
+            const req = indexedDB.open(CONFIG.IMAGE_DB.name, 2);
             req.onupgradeneeded = () => {
               const db = req.result;
-              if (!db.objectStoreNames.contains(CONFIG.IMAGE_DB.store)) {
-                db.createObjectStore(CONFIG.IMAGE_DB.store, { keyPath: "id" });
-              }
+              if (!db.objectStoreNames.contains(CONFIG.IMAGE_DB.store)) db.createObjectStore(CONFIG.IMAGE_DB.store, { keyPath: "id" });
+              if (!db.objectStoreNames.contains(PROJECT_STORE)) db.createObjectStore(PROJECT_STORE, { keyPath: "id" });
             };
-            req.onsuccess = () => res(req.result);
+            req.onsuccess = () => {
+              const db = req.result;
+              db.onversionchange = () => { try { db.close(); } catch (e) { /* 무시 */ } imageDbPromise = null; };
+              res(db);
+            };
             req.onerror = () => rej(req.error || new Error("IDB_OPEN_FAILED"));
-          });
+            req.onblocked = () => toast("이전 버전 프로그램이 다른 탭이나 창에 열려 있습니다. 그 창을 닫으면 저장 기능이 이어집니다.", "error");
+          }).catch(err => { imageDbPromise = null; throw err; });
           return imageDbPromise;
         },
-        _act(mode, fn) {
-          return ImageDB.open().then(db => new Promise((res, rej) => {
-            const tx = db.transaction(CONFIG.IMAGE_DB.store, mode);
-            const rq = fn(tx.objectStore(CONFIG.IMAGE_DB.store));
-            rq.onsuccess = () => res(rq.result);
-            rq.onerror = () => rej(rq.error || new Error("IDB_REQUEST_FAILED"));
+        /* 쓰기 트랜잭션은 oncomplete(디스크 확정)에서 완료로 처리합니다. */
+        act(storeName, mode, fn) {
+          return IDB.open().then(db => new Promise((res, rej) => {
+            let tx;
+            try { tx = db.transaction(storeName, mode, mode === "readwrite" ? { durability: "strict" } : undefined); }
+            catch (e) { tx = db.transaction(storeName, mode); }
+            let result;
+            const rq = fn(tx.objectStore(storeName));
+            if (rq) rq.onsuccess = () => { result = rq.result; };
+            tx.oncomplete = () => res(result);
+            tx.onerror = () => rej(tx.error || new Error("IDB_TX_FAILED"));
+            tx.onabort = () => rej(tx.error || new Error("IDB_TX_ABORTED"));
           }));
+        }
+      };
+
+      const Store = {
+        cache: [],
+        sigs: {},
+        useLS: false,
+        chain: Promise.resolve(),
+        _readLS() {
+          try {
+            const raw = localStorage.getItem(CONFIG.PROJECTS_KEY);
+            const list = raw ? JSON.parse(raw) : [];
+            return Array.isArray(list) ? list : [];
+          } catch (e) { return []; }
         },
+        _writeLS(list) {
+          try { localStorage.setItem(CONFIG.PROJECTS_KEY, JSON.stringify(list)); return true; }
+          catch (e) { return false; }
+        },
+        _sig(row) { return JSON.stringify([row.title, row.data]); },
+        /* 부팅 시 한 번: IndexedDB에서 목록을 읽고, 예전 버전이 localStorage에 남긴 프로젝트를 옮겨 옵니다. */
+        async init() {
+          let rows = [];
+          try {
+            rows = (await IDB.act(PROJECT_STORE, "readonly", st => st.getAll())) || [];
+          } catch (e) {
+            console.warn("IndexedDB를 쓸 수 없어 localStorage로 저장합니다.", e);
+            Store.useLS = true;
+          }
+          const legacy = Store._readLS();
+          if (Store.useLS) {
+            rows = legacy;
+          } else if (legacy.length) {
+            try {
+              const moved = legacy.filter(p => p && p.id && !rows.some(r => r.id === p.id && (r.savedAt || 0) >= (p.savedAt || 0)));
+              if (moved.length) await IDB.act(PROJECT_STORE, "readwrite", st => { moved.forEach(p => st.put(p)); });
+              rows = rows.filter(r => !moved.some(p => p.id === r.id)).concat(moved);
+              localStorage.removeItem(CONFIG.PROJECTS_KEY);
+            } catch (e) { console.warn("기존 프로젝트 이전 실패", e); }
+          }
+          rows = rows.filter(r => r && r.id && r.data).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+          rows.slice(CONFIG.MAX_PROJECTS).forEach(p => Store._dropDisk(p.id));
+          Store.cache = rows.slice(0, CONFIG.MAX_PROJECTS);
+          Store.cache.forEach(r => { Store.sigs[r.id] = Store._sig(r); });
+          try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* 무시 */ }
+        },
+        list() { return Store.cache.slice(); },
+        /* 디스크 쓰기는 순서대로 한 개씩 처리합니다. 마지막 쓰기가 항상 마지막 상태가 됩니다. */
+        _queue(job) {
+          const p = Store.chain.then(job);
+          Store.chain = p.catch(() => {});
+          return p;
+        },
+        _writeRow(row) {
+          if (Store.useLS) return Promise.resolve(Store._writeLS(Store.cache)).then(ok => { if (!ok) throw new Error("QUOTA"); });
+          return IDB.act(PROJECT_STORE, "readwrite", st => st.put(row));
+        },
+        _dropDisk(id) {
+          ImageDB.removeProject(id);
+          if (Store.useLS) return Store._queue(() => Store._writeLS(Store.cache));
+          return Store._queue(() => IDB.act(PROJECT_STORE, "readwrite", st => st.delete(id))).catch(() => {});
+        },
+        /* 내용이 바뀌었을 때만 저장합니다. 반환: Promise<"ok"|"same"|"fail"> */
+        save(snapshot, meta) {
+          const row = { id: meta.id, title: meta.title, savedAt: Date.now(), data: JSON.parse(JSON.stringify(snapshot)) };
+          const sig = Store._sig(row);
+          if (Store.sigs[meta.id] === sig && Store.cache.some(p => p.id === meta.id)) return Promise.resolve("same");
+          Store.sigs[meta.id] = sig;
+          let list = Store.cache.filter(p => p.id !== meta.id);
+          list.unshift(row);
+          const dropped = list.slice(CONFIG.MAX_PROJECTS);
+          Store.cache = list.slice(0, CONFIG.MAX_PROJECTS);
+          dropped.forEach(p => { delete Store.sigs[p.id]; Store._dropDisk(p.id); });
+          return Store._queue(() => Store._writeRow(row)).then(() => "ok").catch(err => {
+            console.warn("프로젝트 저장 실패", err);
+            delete Store.sigs[meta.id];
+            return "fail";
+          });
+        },
+        remove(id) {
+          Store.cache = Store.cache.filter(p => p.id !== id);
+          delete Store.sigs[id];
+          return Store._dropDisk(id);
+        },
+        flush() { return Store.chain; }
+      };
+
+      const ImageDB = {
+        _act(mode, fn) { return IDB.act(CONFIG.IMAGE_DB.store, mode, fn); },
         key: (projectId, slot) => `${projectId}::${slot}`,
         async put(projectId, slot, dataUrl) {
           try {
@@ -752,9 +838,7 @@ ${BOARD_TYPO}`;
           await Promise.all(targets.map(slot => ImageDB.remove(projectId, slot)));
         },
         removeProject(projectId) {
-          IMAGE_SLOTS.forEach(slot => {
-            ImageDB._act("readwrite", st => st.delete(ImageDB.key(projectId, slot))).catch(() => {});
-          });
+          ImageDB._act("readwrite", st => { IMAGE_SLOTS.forEach(slot => st.delete(ImageDB.key(projectId, slot))); }).catch(() => {});
         }
       };
 
@@ -1180,20 +1264,20 @@ ${BOARD_TYPO}`;
         return "이름 없는 프로젝트";
       }
 
-      let quotaWarned = false;
+      /* 내용이 바뀌었을 때만 즉시 디스크에 기록합니다. 반환: Promise<"empty"|"same"|"ok"|"fail"> */
+      let saveWarned = false;
       function persist(showToast) {
-        if (!hasContent()) return "empty";
-        const r = Store.save(snapshot(), { id: state.projectId, title: projectTitle() });
-        if (r.ok) {
-          if (showToast) toast("진행 상태를 저장했습니다.");
-          if (r.pruned === "oldest") toast("저장 공간이 부족해 가장 오래된 프로젝트를 정리했습니다.");
-          return "ok";
-        }
-        if (!quotaWarned) {
-          quotaWarned = true;
-          toast("저장 공간이 부족해 자동 저장이 중단되었습니다. 리포트를 파일로 내려받아 주세요.", "error");
-        }
-        return "full";
+        if (!hasContent()) return Promise.resolve("empty");
+        return Store.save(snapshot(), { id: state.projectId, title: projectTitle() }).then(r => {
+          if (r === "fail") {
+            if (!saveWarned || showToast) toast("저장하지 못했습니다. 저장 공간을 확인하고 리포트를 파일로 내려받아 주세요.", "error");
+            saveWarned = true;
+          } else {
+            saveWarned = false;
+            if (showToast) toast("진행 상태를 저장했습니다.");
+          }
+          return r;
+        });
       }
 
       /* =========================================================
@@ -1288,6 +1372,9 @@ ${BOARD_TYPO}`;
           : `<div class="w-full rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 px-5 py-12 text-center">
                <i data-lucide="image" class="w-10 h-10 text-slate-400 mx-auto mb-3"></i>
                <p class="t-small text-slate-600">${esc(opts.empty || "아직 이미지를 생성하지 않았습니다.")}</p>
+               ${opts.onGenerate ? `<button type="button" onclick="${opts.onGenerate}"
+                  class="mt-4 inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white t-small font-bold active:scale-[0.98] transition-all">
+                  <i data-lucide="image-plus" class="w-5 h-5"></i>이미지 생성</button>` : ""}
              </div>`;
         return `<section class="bg-white rounded-[2rem] p-4 border-2 border-slate-200 shadow-md mb-6">
           <div class="flex items-center justify-between gap-3 mb-3 px-1">
@@ -1816,19 +1903,30 @@ ${others}`;
           const next = list.slice();
           next[target] = fresh;
           const patch = { [def.key]: next };
+          /* 이 단계의 기존 이미지는 수정 전 내용이므로 함께 지웁니다.
+             새 이미지 생성이 실패·취소되거나 도중에 앱을 닫아도, 다시 열었을 때 수정 전 이미지가 되살아나지 않습니다. */
+          const staleSlots = [stage];
           if (downstream) {
             const d = def.clearDown();
-            await Actions.clearImageSlots(d.slots);
+            staleSlots.push.apply(staleSlots, d.slots);
             Object.assign(patch, d.patch);
-            const imgs = Object.assign({}, state.images);
-            d.slots.forEach(s => { imgs[s] = null; });
-            patch.images = imgs;
           }
+          await Actions.clearImageSlots(staleSlots);
+          patch.images = Object.assign({}, state.images);
           drafts[def.insId] = "";
           setState(patch);
-          persist(false);
+          await persist(false);
           toast(`${pad2(target + 1)}번 항목을 수정했습니다. 이미지를 다시 만듭니다.`);
           await def.image();
+        },
+
+        pickKeyword(i) {
+          const w = SAMPLE_KEYWORDS[i];
+          if (!w) return;
+          drafts["keyword-input"] = w;
+          render();
+          const el = document.getElementById("keyword-input");
+          if (el) { el.focus({ preventScroll: true }); try { el.setSelectionRange(w.length, w.length); } catch (e) { /* 무시 */ } }
         },
 
         /* ---- 시뮬레이터 제작 프롬프트 ---- */
@@ -1917,7 +2015,9 @@ ${others}`;
           persist(false);
           setState({ step: 0 }, true);
         },
-        saveNow() { const r = persist(true); if (r === "empty") toast("아직 저장할 내용이 없습니다."); },
+        saveNow() {
+          persist(true).then(r => { if (r === "empty") toast("아직 저장할 내용이 없습니다."); });
+        },
 
         copyReport() {
           const text = buildReport();
@@ -2296,9 +2396,13 @@ ${others}`;
             class="w-full p-5 bg-white border-2 border-slate-300 rounded-2xl focus:border-blue-700 outline-none t-h3 text-slate-900 placeholder:text-slate-400 placeholder:font-normal mb-4"
             placeholder="예: 차갑고 아름답고 무거움" />
 
-          <p class="t-meta font-bold text-slate-500 mb-2">키워드 사례</p>
+          <p class="t-meta font-bold text-slate-500 mb-2">키워드 사례 <span class="font-normal">· 누르면 입력칸에 들어갑니다</span></p>
           <div class="flex flex-wrap gap-2 mb-8">
-            ${SAMPLE_KEYWORDS.map(w => `<span class="px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 t-meta text-slate-600">${esc(w)}</span>`).join("")}
+            ${SAMPLE_KEYWORDS.map((w, i) => {
+              const on = kw.trim() === w;
+              return `<button type="button" onclick="Actions.pickKeyword(${i})" aria-pressed="${on}"
+                class="px-3.5 py-2 rounded-xl border t-meta transition-all active:scale-95 ${on ? "bg-blue-50 border-blue-600 text-blue-800 font-bold" : "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"}">${esc(w)}</button>`;
+            }).join("")}
           </div>
 
           <label for="note-input" class="t-label text-slate-500 block mb-2">연관 과제 입력 (선택)</label>
@@ -2357,7 +2461,6 @@ ${others}`;
           ${imageCard("emotion", {
             title: "감성 해석 통합 이미지",
             alt: "세 가지 감성 해석의 대표 이미지",
-            caption: "각 안은 단독으로 완결된 Mood Image이며, 생성은 세 장면을 위에서 아래로 배치한 통합 이미지 1장으로 진행합니다. 눌러서 크게 볼 수 있습니다.",
             empty: "감성 해석 이미지를 아직 만들지 않았습니다.",
             onGenerate: "Actions.generateEmotionImage()",
             hideActions: true
@@ -2405,7 +2508,6 @@ ${others}`;
           ${imageCard("perception", {
             title: "지각 특성 통합 이미지",
             alt: "지각 요소별 대표 이미지",
-            caption: "서로 다른 10개의 지각 축을 각기 다른 대상·스케일·장면으로 시각화해 하나의 통합 이미지로 묶었습니다.",
             empty: "지각 특성 이미지를 아직 만들지 않았습니다.",
             onGenerate: "Actions.generatePerceptionImage()"
           })}
@@ -2470,7 +2572,6 @@ ${others}`;
           ${imageCard("property", {
             title: "물성 통합 이미지",
             alt: "물성별 대표 표면·광학·촉감 이미지 통합 보드",
-            caption: "각 물성을 대표하는 전문 이미지들을 한 장의 에디토리얼 보드로 묶었습니다.",
             empty: "물성 통합 이미지를 아직 만들지 않았습니다.",
             onGenerate: "Actions.generatePropertyImage()"
           })}
@@ -2549,7 +2650,6 @@ ${others}`;
           ${imageCard("material", {
             title: "CMF 샘플 보드",
             alt: "CMF별 단일 에디토리얼 샘플 이미지 보드",
-            caption: "각 CMF 안을 한 장의 강한 샘플 이미지로 소개하는 통합 보드입니다.",
             empty: "CMF 샘플 보드를 아직 만들지 않았습니다.",
             onGenerate: "Actions.generateMaterialImage()"
           })}
@@ -2701,12 +2801,17 @@ ${others}`;
         else if (state.isAnalyzing) Actions.cancel();
       });
 
-      setInterval(() => { try { persist(false); } catch (e) { console.warn("자동 저장 실패", e); } }, CONFIG.AUTOSAVE_MS);
-      window.addEventListener("beforeunload", () => { try { persist(false); } catch (e) { /* 무시 */ } });
+      /* 자동 저장 — 내용이 바뀐 경우에만 기록합니다. 모바일은 앱 전환·종료 때 beforeunload가 오지 않으므로
+         화면이 가려지는 순간(visibilitychange / pagehide)에도 저장합니다. */
+      const safePersist = () => { try { persist(false); } catch (e) { console.warn("자동 저장 실패", e); } };
+      setInterval(safePersist, CONFIG.AUTOSAVE_MS);
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") safePersist(); });
+      window.addEventListener("pagehide", safePersist);
+      window.addEventListener("beforeunload", safePersist);
 
       loadSession();
       if (state.apiKey) state.step = 0;
-      render(true);
+      Store.init().catch(e => console.warn("저장 목록을 불러오지 못했습니다.", e)).then(() => render(true));
     })();
   </script>
 </body>
