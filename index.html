@@ -494,7 +494,17 @@ ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
       const IMG_LABEL_RULE = `Label typography, applied to every label in the image: set each label on its own clean white caption strip, with the leading number in bold and the Korean title followed immediately by the English title on the SAME LINE in regular weight, in a neutral sans-serif on white. Do not place English on a second line. The label text must be large and unmistakably legible — letters at least 40 pixels tall in this 1024 x 1536 image. Never set label text smaller than that; if space is tight make the caption strip taller rather than shrinking the type. Render only the label text specified below and no other lettering anywhere in the image.`;
 
       /* 지각·물성·CMF 보드 공통 글씨 규칙 — 지각 특성 보드의 캡션 형식을 기준으로 통일합니다. */
-      const BOARD_TYPO = `Board typography — identical on the perception, property and CMF boards of this project, so all three boards read as one series:
+      /* 지각·물성 보드 공통 글씨 규칙.
+         보드 이미지(가로 1024px)는 앱에서 약 366px 폭으로 보이므로, 이미지 안 글자 크기 36px ≈ 화면에서 13px입니다. */
+      const KO_BOARD_TYPO = `Caption typography — exactly identical on the perception board and the property board of this project:
+- Every item has ONE clean white caption strip placed directly beneath its image, the same height for every item on the board.
+- Caption content on ONE line: the two-digit number in bold, a single space, then the Korean title exactly as specified in regular weight. Korean only — absolutely no English words, no romanization, no translation, no description, badge or second line.
+- Font: one neutral modern Korean sans-serif (Pretendard-like), near-black ink on white, left-aligned with the same inner padding for every caption.
+- Size: small and uniform — a font size of about 36 pixels in this 1024 x 1536 image (Korean glyphs about 30 pixels tall), the same size for every caption. Do not enlarge captions to fill space and do not shrink long titles; if a title is long, let the strip keep the same size and the text stay on one line.
+- Image area above the caption: same corner radius, same thin light-grey hairline border, same gutters between items.
+- No board title, header, footer, page number or any other lettering anywhere in the image.`;
+
+      const BOARD_TYPO = `Board typography for the CMF board:
 - Every item has ONE clean white caption strip placed directly beneath its image, the same height for every item on the board.
 - Caption content on ONE line: the two-digit number in bold, then the title text exactly as specified, in regular weight. Korean title and English title stay on the same line; never break onto a second line and never add a description, spec line, badge or body copy.
 - Font: one neutral modern sans-serif (Pretendard-like for Korean, the same family for English and numbers), near-black ink on white, left-aligned with the same inner padding for every caption.
@@ -527,21 +537,13 @@ ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
           : `"${pad2(i + 1)}" in bold followed by "${en}"`;
       }
 
-      function perceptionLabelLine(item, i) {
+      /* 지각·물성 보드 공통 라벨 — 숫자와 한국어 제목만 넣습니다(영어 없음). */
+      function koBoardLabel(item, i) {
         const ko = item.titleKo || item.labelKo || "";
-        const en = item.titleEn || item.label || "";
-        return state.labelLang === "ko" && ko
-          ? `"${pad2(i + 1)}" in bold followed by "${ko}  ${en}" on the SAME line`
-          : `"${pad2(i + 1)}" in bold followed by "${en}"`;
+        return ko ? `"${pad2(i + 1)}" in bold followed by "${ko}"` : `"${pad2(i + 1)}" in bold`;
       }
-
-      function propertyLabelLine(item, i) {
-        const ko = item.titleKo || item.labelKo || "";
-        const en = item.titleEn || item.label || "";
-        return state.labelLang === "ko" && ko
-          ? `"${pad2(i + 1)}" in bold followed by "${ko}  ${en}" on the SAME line`
-          : `"${pad2(i + 1)}" in bold followed by "${en}"`;
-      }
+      const perceptionLabelLine = koBoardLabel;
+      const propertyLabelLine = koBoardLabel;
 
       function styleNote(items) {
         const used = items.map((it, i) => styleOf(it, i).name);
@@ -577,7 +579,7 @@ ${IMG_LABEL_RULE}`;
   Perceptual axis: ${p.category} / ${p.titleKo}.
   Single-scene direction: ${p.visual}
   Important: visually demonstrate the perceptual mechanism, not merely a beautiful mood. This cell must contain one coherent subject or scene, never a collage or multiple examples.
-  White caption strip directly under this image: ${perceptionLabelLine(p, i)}. Keep Korean and English together on one line.`;
+  White caption strip directly under this image: ${perceptionLabelLine(p, i)}. Korean only, one line.`;
           }).join("\n");
           return `${IMG_BASE}
 Create ONE single vertical 2:3 integrated image file containing exactly TEN independent perceptual-reference images on a clean white editorial board.
@@ -595,12 +597,12 @@ ${cells}
 - Each image must make its own perceptual quality immediately visible: initial detection, contact/response, spatial development, temporal movement/recovery, aftereffect/settling, or directional/spatial orientation as appropriate.
 - Styles must not all be identical. The same named style may appear at most twice across the ten cells.
 Styles used across the cells: ${styleNote(items)}.
-${BOARD_TYPO}`;
+${KO_BOARD_TYPO}`;
         },
         property(items) {
           const cards = items.map((p, i) => `Card ${i + 1}:
   Image direction: ${p.visual || p.description}
-  White caption strip directly under this image: ${propertyLabelLine(p, i)}.`).join("\n");
+  White caption strip directly under this image: ${propertyLabelLine(p, i)}. Korean only, one line.`).join("\n");
           return `${IMG_BASE}
 Create ONE single vertical 2:3 integrated image file that presents all ${items.length} material-property cards on a clean premium editorial board.
 Layout: a balanced 2-column grid across as many rows as needed (cells 01–${pad2(items.length)}). Each cell contains ONE image plus a separate white caption strip directly beneath it. Use thin light-grey hairlines, consistent gutters, generous white margins, and no extra cells or subdivisions.
@@ -609,7 +611,7 @@ Do not use product shots, device mockups, icons, or multiple insets inside one c
 Make the cards varied and professional rather than repetitive. If several properties are optical, vary them through translucency, diffusion, clarity, edge glow, reflection direction, internal depth, or softness of boundary.
 The result should resemble a curated premium CMF or materials magazine page, not a generic infographic.
 ${cards}${cuesImgLine()}
-${BOARD_TYPO}`;
+${KO_BOARD_TYPO}`;
         },
         material(items) {
           const cards = items.map((m, i) => {
