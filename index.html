@@ -491,19 +491,19 @@ ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
       const IMG_BASE = `Editorial imagery for a high-end design magazine. Premium image quality, professional lighting, convincing material and atmospheric detail where appropriate, natural tonal depth, no watermark, no logo, no signature. Preserve the chosen style faithfully rather than forcing every panel to look equally sharp. Avoid conventional posed portraits and identifiable faces; hands, back views or partial figures are fine when a lifestyle scene genuinely needs a person.`;
 
       /* 라벨이 작게 찍히면 화면에서 읽히지 않습니다. 픽셀 높이를 직접 지정합니다. */
-      /* 감성·지각·물성 보드 공통 제목 크기 — 사용자가 지정한 '01 먼 곳까지 또렷한 빛' 크기 기준.
-         실측: 보드 폭 대비 글자 높이 약 2.6% → 가로 1024px 이미지에서 글자 높이 약 27px. */
-      const CAPTION_SIZE = `Caption text size — identical on the emotion, perception and property boards of this project: Korean glyphs about 27 pixels tall in this 1024 x 1536 image (a font size of about 28 px, roughly 2.6% of the full image width). Reference: on a two-column board, a caption such as "01 먼 곳까지 또렷한 빛" spans a little more than half of its cell's width. Every caption on every board uses exactly this size: never smaller than 24 px glyph height and never larger than 30 px; do not scale captions to fit the cell, a wider panel or a longer title. Number and title are both set in bold, near-black, in one neutral modern Korean sans-serif (Pretendard-like).`;
+      /* 감성·지각·물성 보드 공통 제목 크기 — '01 먼 곳까지 또렷한 빛' 기준 크기(글자 높이 약 27px)의 두 배.
+         가로 1024px 이미지에서 글자 높이 약 54px(이미지 폭의 약 5.3%). */
+      const CAPTION_SIZE = `Caption text size — identical on the emotion, perception and property boards of this project: large, bold captions with Korean glyphs about 54 pixels tall in this 1024 x 1536 image (a font size of about 56 px, roughly 5.3% of the full image width). Reference: on a two-column board, the caption "01 먼 곳까지 또렷한 빛" at this size is about as wide as the whole cell. Every caption on every board uses exactly this size: never smaller than 48 px glyph height and never larger than 60 px; do not shrink a caption to fit the cell or a long title — if the title does not fit on one line, wrap it onto a second line at the same size and make the caption strip taller (shrink the image area above instead). Number and title are both set in bold, near-black, in one neutral modern Korean sans-serif (Pretendard-like).`;
 
-      const IMG_LABEL_RULE = `Label typography, applied to every label in the image: set each label on its own clean white caption strip, left-aligned, with the leading number followed by the Korean title and then the English title on the SAME LINE, on white. Do not place English on a second line. ${CAPTION_SIZE} Render only the label text specified below and no other lettering anywhere in the image.`;
+      const IMG_LABEL_RULE = `Label typography, applied to every label in the image: set each label on its own clean white caption strip, left-aligned, with the leading number followed by the Korean title only, on white. Korean only — absolutely no English words, no romanization or translation. ${CAPTION_SIZE} Render only the label text specified below and no other lettering anywhere in the image.`;
 
       /* 지각·물성·CMF 보드 공통 글씨 규칙 — 지각 특성 보드의 캡션 형식을 기준으로 통일합니다. */
       /* 지각·물성 보드 공통 글씨 규칙.
          보드 이미지(가로 1024px)는 앱에서 약 366px 폭으로 보이므로, 이미지 안 글자 크기 36px ≈ 화면에서 13px입니다. */
       const KO_BOARD_TYPO = `Caption typography — exactly identical on the perception board and the property board of this project:
 - Every item has ONE clean white caption strip placed directly beneath its image, the same height for every item on the board.
-- Caption content on ONE line: the two-digit number, a single space, then the Korean title exactly as specified. Korean only — absolutely no English words, no romanization, no translation, no description, badge or second line.
-- Font and size: ${CAPTION_SIZE} Left-aligned on white with the same inner padding for every caption; a long title stays on one line at the same size.
+- Caption content: the two-digit number, a single space, then the Korean title exactly as specified. Korean only — absolutely no English words, no romanization, no translation, no description or badge.
+- Font and size: ${CAPTION_SIZE} Left-aligned on white with the same inner padding for every caption; a long title wraps to a second line at the same size rather than shrinking, and every caption strip on the board keeps the same height.
 - Image area above the caption: same corner radius, same thin light-grey hairline border, same gutters between items.
 - No board title, header, footer, page number or any other lettering anywhere in the image.`;
 
@@ -534,10 +534,7 @@ ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
 
       function emotionLabelLine(item, i) {
         const ko = item.nameKo || item.labelKo || "";
-        const en = item.nameEn || item.label || "";
-        return state.labelLang === "ko" && ko
-          ? `"${pad2(i + 1)}" in bold followed by "${ko}  ${en}" on the SAME line`
-          : `"${pad2(i + 1)}" in bold followed by "${en}"`;
+        return ko ? `"${pad2(i + 1)}" in bold followed by "${ko}"` : `"${pad2(i + 1)}" in bold`;
       }
 
       /* 지각·물성 보드 공통 라벨 — 숫자와 한국어 제목만 넣습니다(영어 없음). */
@@ -558,7 +555,7 @@ ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
           const panels = concepts.map((c, i) => {
             const s = styleOf(c, i);
             return `Panel ${i + 1} — one complete standalone mood image, rendered as ${s.directive}.
-  Emotional concept: ${c.nameKo} / ${c.nameEn}.
+  Emotional concept: ${c.nameKo}.
   Single-scene direction: ${c.visual}
 ${c.cues ? `  Perceptual qualities ordinary viewers associate with the keyword — push them slightly beyond natural so they read instantly: ${c.cues}
 ` : ""}  Important: this panel itself must be a single coherent scene, never a collage, montage, split-screen, contact sheet, or collection of unrelated symbolic objects.
@@ -582,7 +579,7 @@ ${IMG_LABEL_RULE}`;
   Perceptual axis: ${p.category} / ${p.titleKo}.
   Single-scene direction: ${p.visual}
   Important: visually demonstrate the perceptual mechanism, not merely a beautiful mood. This cell must contain one coherent subject or scene, never a collage or multiple examples.
-  White caption strip directly under this image: ${perceptionLabelLine(p, i)}. Korean only, one line.`;
+  White caption strip directly under this image: ${perceptionLabelLine(p, i)}. Korean only, same large size.`;
           }).join("\n");
           return `${IMG_BASE}
 Create ONE single vertical 2:3 integrated image file containing exactly TEN independent perceptual-reference images on a clean white editorial board.
@@ -605,7 +602,7 @@ ${KO_BOARD_TYPO}`;
         property(items) {
           const cards = items.map((p, i) => `Card ${i + 1}:
   Image direction: ${p.visual || p.description}
-  White caption strip directly under this image: ${propertyLabelLine(p, i)}. Korean only, one line.`).join("\n");
+  White caption strip directly under this image: ${propertyLabelLine(p, i)}. Korean only, same large size.`).join("\n");
           return `${IMG_BASE}
 Create ONE single vertical 2:3 integrated image file that presents all ${items.length} material-property cards on a clean premium editorial board.
 Layout: a balanced 2-column grid across as many rows as needed (cells 01–${pad2(items.length)}). Each cell contains ONE image plus a separate white caption strip directly beneath it. Use thin light-grey hairlines, consistent gutters, generous white margins, and no extra cells or subdivisions.
