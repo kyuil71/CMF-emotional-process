@@ -395,7 +395,7 @@ ${cuesBlock(concept)}
 사용자가 선택한 지각 요소:
 ${perceptions.map((p, i) => `${i + 1}. [${p.category}] ${p.titleKo} — ${p.description} (관찰 단서: ${p.cue})`).join("\n")}
 
-선택된 지각 특성을 물리적으로 성립시키는 핵심 물성 특성을 10~14개 범위에서 유동적으로 정의해 주세요.
+선택된 지각 특성을 물리적으로 성립시키는 핵심 물성 특성을 정확히 10개 정의해 주세요.
 
 [핵심 관점]
 - 이 단계는 단순한 그래픽 조절값 목록이 아니라, 앞 단계의 지각 경험을 실제 재료·표면·광학·촉각·시간 반응의 언어로 번역하는 전문 CMF 해석 단계입니다.
@@ -404,7 +404,7 @@ ${perceptions.map((p, i) => `${i + 1}. [${p.category}] ${p.titleKo} — ${p.desc
 - 단순히 채도, 밝기, 명암, 색상 같은 그래픽 조절형 단어를 핵심 물성으로 제시하지 않습니다.
 
 [선정 원칙]
-- 개수를 채우기 위해 억지로 14개를 만들지 않습니다. 선택된 지각 특성을 충분히 설명하는 데 필요한 만큼만 10~14개 범위에서 선정합니다.
+- 물성은 반드시 정확히 10개입니다(이미지 보드가 지각 특성 보드와 같은 2열 × 5행 구성이기 때문입니다). 뜻이 겹치는 항목으로 개수를 채우지 말고, 선택된 지각 특성을 가장 잘 설명하는 10개를 고릅니다.
 - 사용자가 선택한 각 지각 특성에는 최소 1개 이상의 직접 연결 물성이 반드시 있어야 합니다.
 - 중요한 지각 특성은 2~4개의 물성으로 세분화할 수 있습니다.
 - 뜻이 겹치거나 영향이 약한 물성, 앞 항목의 단순한 동의어는 제외합니다.
@@ -423,7 +423,7 @@ ${perceptions.map((p, i) => `${i + 1}. [${p.category}] ${p.titleKo} — ${p.desc
 - 소재명, 브랜드명, 특정 제품명은 쓰지 않습니다.
 
 ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
-[FORMAT] 아래 JSON 구조로만 반환하세요. 아래 예시는 항목 1개의 모양만 보여 주는 것입니다. "properties" 배열에는 반드시 10~14개의 항목을 모두 넣습니다. 1개만 넣거나 줄여서 보내지 않습니다.
+[FORMAT] 아래 JSON 구조로만 반환하세요. 아래 예시는 항목 1개의 모양만 보여 주는 것입니다. "properties" 배열에는 반드시 정확히 10개의 항목을 모두 넣습니다. 1개만 넣거나 줄여서 보내지 않습니다.
 {"properties":[{"axis":"광학","titleKo":"겹겹이 깊어지는 빛","titleEn":"Layered Optical Depth","description":"2문장","check":"","value":78,"level":"높음","visual":"editorial macro photograph of a translucent layered surface showing luminous depth and soft internal glow"}]}`,
 
         MATERIAL: (concept, properties, instruction) => `선택된 감성 해석: ${concept.nameKo} (${concept.nameEn})
@@ -583,7 +583,7 @@ ${IMG_LABEL_RULE}`;
           }).join("\n");
           return `${IMG_BASE}
 Create ONE single vertical 2:3 integrated image file containing exactly TEN independent perceptual-reference images on a clean white editorial board.
-Layout: Cells 01–10 form a balanced 2-column × 5-row grid. Each cell contains one image plus a separate white caption strip directly beneath it. Use thin light-grey hairlines, consistent gutters, generous white margins, and no extra cells or subdivisions.
+Layout: Cells 01–10 form a balanced 2-column × 5-row grid. Each cell contains one image plus a separate white caption strip directly beneath it. Use thin light-grey hairlines, consistent gutters, generous white margins, and no extra cells or subdivisions. Each image fills its cell's full width and every remaining bit of height above its caption, so the images are as tall as possible; no empty space at the bottom of the board.
 ${cells}
 
 [CRITICAL SUBJECT-DIVERSITY RULES]
@@ -605,7 +605,7 @@ ${KO_BOARD_TYPO}`;
   White caption strip directly under this image: ${propertyLabelLine(p, i)}. Korean only, same large size.`).join("\n");
           return `${IMG_BASE}
 Create ONE single vertical 2:3 integrated image file that presents all ${items.length} material-property cards on a clean premium editorial board.
-Layout: a balanced 2-column grid across as many rows as needed (cells 01–${pad2(items.length)}). Each cell contains ONE image plus a separate white caption strip directly beneath it. Use thin light-grey hairlines, consistent gutters, generous white margins, and no extra cells or subdivisions.
+Layout: exactly the same as the perception board of this project — Cells 01–${pad2(items.length)} form a balanced 2-column × ${Math.ceil(items.length / 2)}-row grid. Each cell contains one image plus a separate white caption strip directly beneath it. Use thin light-grey hairlines, consistent gutters, generous white margins, and no extra cells or subdivisions. Each image fills its cell's full width and every remaining bit of height above its caption, so the images are as tall as possible; no empty space at the bottom of the board.
 The image in each card must communicate the property through one strong, elegant visual: a cropped sample edge, layered translucent section, controlled specular highlight, soft matte surface, compressed elastic form, diffused light field, directional texture, rippling motion trace, boundary softness, or another materially credible phenomenon.
 Do not use product shots, device mockups, icons, or multiple insets inside one card. One property, one image, one card.
 Make the cards varied and professional rather than repetitive. If several properties are optical, vary them through translucency, diffusion, clarity, edge glow, reflection direction, internal depth, or softness of boundary.
@@ -1215,7 +1215,7 @@ ${BOARD_TYPO}`;
 
       function normProperties(raw) {
         const levels = ["낮음", "중간", "높음"];
-        return arr(raw && raw.properties).slice(0, 14).map((p, i) => ({
+        return arr(raw && raw.properties).slice(0, 10).map((p, i) => ({
           id: uid("prp"),
           index: i + 1,
           axis: str(p.axis) || "물성",
@@ -2271,7 +2271,7 @@ ${others}`;
           const properties = await withLoading("물성 특성을 정의하고 있습니다", async () => {
             const mk = extra => PROMPTS.PROPERTY(c, picked, joinIns(instruction || "", extra));
             const first = normProperties(await callText(SYSTEM, mk("")));
-            /* 물성은 10~14개 — 10개보다 적을 때만 채웁니다. */
+            /* 물성은 정확히 10개 — 모자라면 채웁니다. */
             return first.length >= 10 ? first : fillToCount({ items: first, target: 10, key: "properties",
               label: "물성", titleOf: x => x.titleKo, norm: normProperties, prompt: mk });
           });
