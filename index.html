@@ -491,16 +491,19 @@ ${instruction ? `\n[추가 지시사항]\n${instruction}\n` : ""}
       const IMG_BASE = `Editorial imagery for a high-end design magazine. Premium image quality, professional lighting, convincing material and atmospheric detail where appropriate, natural tonal depth, no watermark, no logo, no signature. Preserve the chosen style faithfully rather than forcing every panel to look equally sharp. Avoid conventional posed portraits and identifiable faces; hands, back views or partial figures are fine when a lifestyle scene genuinely needs a person.`;
 
       /* 라벨이 작게 찍히면 화면에서 읽히지 않습니다. 픽셀 높이를 직접 지정합니다. */
-      const IMG_LABEL_RULE = `Label typography, applied to every label in the image: set each label on its own clean white caption strip, with the leading number in bold and the Korean title followed immediately by the English title on the SAME LINE in regular weight, in a neutral sans-serif on white. Do not place English on a second line. The label text must be large and unmistakably legible — letters at least 40 pixels tall in this 1024 x 1536 image. Never set label text smaller than that; if space is tight make the caption strip taller rather than shrinking the type. Render only the label text specified below and no other lettering anywhere in the image.`;
+      /* 감성·지각·물성 보드 공통 제목 크기 — 사용자가 지정한 '01 먼 곳까지 또렷한 빛' 크기 기준.
+         실측: 보드 폭 대비 글자 높이 약 2.6% → 가로 1024px 이미지에서 글자 높이 약 27px. */
+      const CAPTION_SIZE = `Caption text size — identical on the emotion, perception and property boards of this project: Korean glyphs about 27 pixels tall in this 1024 x 1536 image (a font size of about 28 px, roughly 2.6% of the full image width). Reference: on a two-column board, a caption such as "01 먼 곳까지 또렷한 빛" spans a little more than half of its cell's width. Every caption on every board uses exactly this size: never smaller than 24 px glyph height and never larger than 30 px; do not scale captions to fit the cell, a wider panel or a longer title. Number and title are both set in bold, near-black, in one neutral modern Korean sans-serif (Pretendard-like).`;
+
+      const IMG_LABEL_RULE = `Label typography, applied to every label in the image: set each label on its own clean white caption strip, left-aligned, with the leading number followed by the Korean title and then the English title on the SAME LINE, on white. Do not place English on a second line. ${CAPTION_SIZE} Render only the label text specified below and no other lettering anywhere in the image.`;
 
       /* 지각·물성·CMF 보드 공통 글씨 규칙 — 지각 특성 보드의 캡션 형식을 기준으로 통일합니다. */
       /* 지각·물성 보드 공통 글씨 규칙.
          보드 이미지(가로 1024px)는 앱에서 약 366px 폭으로 보이므로, 이미지 안 글자 크기 36px ≈ 화면에서 13px입니다. */
       const KO_BOARD_TYPO = `Caption typography — exactly identical on the perception board and the property board of this project:
 - Every item has ONE clean white caption strip placed directly beneath its image, the same height for every item on the board.
-- Caption content on ONE line: the two-digit number in bold, a single space, then the Korean title exactly as specified in regular weight. Korean only — absolutely no English words, no romanization, no translation, no description, badge or second line.
-- Font: one neutral modern Korean sans-serif (Pretendard-like), near-black ink on white, left-aligned with the same inner padding for every caption.
-- Size: small and uniform — a font size of about 36 pixels in this 1024 x 1536 image (Korean glyphs about 30 pixels tall), the same size for every caption. Do not enlarge captions to fill space and do not shrink long titles; if a title is long, let the strip keep the same size and the text stay on one line.
+- Caption content on ONE line: the two-digit number, a single space, then the Korean title exactly as specified. Korean only — absolutely no English words, no romanization, no translation, no description, badge or second line.
+- Font and size: ${CAPTION_SIZE} Left-aligned on white with the same inner padding for every caption; a long title stays on one line at the same size.
 - Image area above the caption: same corner radius, same thin light-grey hairline border, same gutters between items.
 - No board title, header, footer, page number or any other lettering anywhere in the image.`;
 
